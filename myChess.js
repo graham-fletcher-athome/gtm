@@ -1,0 +1,416 @@
+import "https://cdnjs.cloudflare.com/ajax/libs/chessboard-js/1.0.0/chessboard-1.0.0.js"
+import {Chess} from "https://cdnjs.cloudflare.com/ajax/libs/chess.js/0.13.4/chess.min.js"
+import {analyse} from "./engine.js"
+
+var board
+
+export class myChess{
+    mid(c){
+        return(this.divId+"_"+c)
+    }
+    midd(c){
+        return $("#"+this.mid(c))
+    }
+
+    loadPGN(pgn){
+
+        var chess = new Chess()
+        if (chess.load_pgn(pgn) != null)
+        {
+            this.moves = chess.history({ verbose: true })
+            var x = chess.header()
+            
+            chess.reset()
+
+            for (var i = 0; i < this.moves.length; i++){
+                this.moves[i].fen_before = chess.fen()
+                this.moves[i].pgn_before = chess.pgn()
+                this.moves[i].eval_before = null
+                chess.move(this.moves[i])
+                this.moves[i].fen_after  = chess.fen()
+                this.moves[i].pgn_after = chess.pgn()
+                this.moves[i].eval_after = null
+                if ( i >=9 )
+                    analyse(this.moves[i].fen_after, this.analysisReturn)
+            }
+            chess.reset()
+
+            
+            if ("Event" in x)
+                this.midd('title_event').html(x["Event"])
+            else
+                this.midd('title_event').html("Chess Game from PGN")
+        
+            if ("Date" in x)
+                this.midd('title_date').html(x["Date"])
+            else
+                this.midd('title_date').html("<br>")
+        
+            if ("Site" in x)
+                this.midd('title_site').html(x["Site"])
+            else
+                this.midd('title_site').html("<br>")
+        
+            var pl
+            var plElo
+
+            if ("Black" in x)
+                pl = x["Black"]
+            else
+                pl = "Black Unknown"
+        
+            if ("BlackElo" in x)
+                plElo = x["BlackElo"]
+            else
+                plElo = "-"
+        
+            this.midd('black_details').html(pl+"<br>"+plElo)
+        
+            if ("White" in x)
+                pl = x["White"]
+            else
+                pl = "White Unknown"
+        
+            if ("WhiteElo" in x)
+                plElo = x["WhiteElo"]
+            else
+                plElo = "-"
+        
+            this.midd('white_details').html(pl+"<br>"+plElo)
+            this.header = x
+            this.chess = chess
+            this.setMoveOnBoard(0)
+            this.moveorrequest()
+            return true
+        }
+        else
+            return false
+    }
+
+    
+
+    setMoveOnBoard(x){
+        if (x > this.chess.history().length)
+            x = this.chess.history().length
+        if (x==0)
+        {
+            this.board.position(this.moves[x].fen_before)
+            
+        }
+        else
+        {
+            this.board.position(this.moves[x-1].fen_after)
+            
+        }
+        this.moveOnBoard = x
+    }
+
+    analysisReturn(fen,ca)
+    {
+        
+        for(var j = 0; j < self.moves.length; j++){
+            if (self.moves[j].fen_before == fen)
+            {
+                
+                self.moves[j].eval_before = ca
+                self.moveorrequest()
+            }
+            if (self.moves[j].fen_after == fen)
+            {
+            
+                self.moves[j].eval_after = ca
+            }
+
+        }
+    }
+
+
+
+    makeHTML(){
+        var self = this
+        this.parent.html(
+             '<div id="'+this.mid("container")+'" class="container">'+
+                '<div id="'+this.mid("title")+'" class="myChess_title">'+
+                    '<div id="'+this.mid("title_event")+'" >Event</div>'+
+                    '<div id="'+this.mid("title_site")+'"></div>'+
+                    '<div id="'+this.mid("title_date")+'"></div>'+
+                    '<hr>'+
+                    '<div id="'+this.mid("myChess_status")+'" style="height: 20px; font-size: 14px;"></div>'+
+                '</div>'+
+
+                '<div id="'+this.mid("myBoard")+'" style="width: 400px" class="myChess_board"></div>'+
+                '<div id="'+this.mid("details")+'" class="myChess_details">'+
+                    '<div id = "'+this.mid("top_details")+'" class="dtls"><div id="'+this.mid("black_details")+'" class="ct">Black details</div></div>'+
+                    '<div id = "'+this.mid("pgn")+'" style="height:70%"></div>'+
+                    '<div id = "'+this.mid("bottom_details")+'" class="dtls"><div id="'+this.mid("white_details")+'" class="ct">White details</div></div>'+
+                '</div>'+
+                '<div id="'+this.mid("controls")+'" class="myChess_controls">'+
+                    '<button id="'+this.mid("flip_control")+'" style="width:15%"> Flip board </button>'+
+                    '<button id="'+this.mid("load_control")+'" style="width:15%">  Load PGN </button>'+
+                    '<button id="'+this.mid("first_control")+'">  \<\< </button>'+
+                    '<button id="'+this.mid("back_control")+'">  \< </button>'+
+                    '<button id="'+this.mid("forward_control")+'" >  \> </button>'+
+                    '<button id="'+this.mid("last_control")+'" >  \>\> </button>'+
+                '</div>'+
+            '</div>' +
+            '<div id="'+this.mid("myModal")+'" class="modal">'+
+                '<div class="modal-content" style="width: 350px;">'+      
+                    '<table>'+
+                        '<tr> <th colspan="2" align="center">Paste PGN file here</th></tr>'+
+                        '<tr> <th colspan="2" align="center" id = "modalMessage"></th> </tr>'+
+                        '<tr> <td colspan="2"> <textarea name="newPGNtext" id="'+this.mid("newPgnText")+'" cols="40" rows="5"></textarea> </td> </tr>'+
+                        '<tr> <td align="center" style="width: 50%"> <button id="'+this.mid("dlg_load")+'" style="width: 90%" >Load</button></td>'+
+                             '<td align="center" style="width: 50%"> <button id="'+this.mid("dlg_close")+'" style="width: 90%">Cancel</button></td></tr>'+
+                    '</table>'+
+                '</div>'+
+            '</div>'
+
+            
+        )
+        this.midd("flip_control").on("click",(event) => {
+            self.flip_board()
+        })
+
+        this.midd("load_control").on("click",(event) => {
+            self.open_pgn_dlg()
+        })
+
+        this.midd("dlg_close").on("click",(event)=>{
+            self.clode_pgn_dlg()
+        })
+
+        this.midd("dlg_load").on("click",(event)=>{
+            self.load_pgn_dlg()
+        })
+
+        this.midd("back_control").on("click",(event_=>{
+            if (self.moveOnBoard > 0)
+                self.setMoveOnBoard(self.moveOnBoard-1)
+        }))
+
+        this.midd("first_control").on("click",(event_=>{
+            self.setMoveOnBoard(0)
+        }))
+
+        this.midd("forward_control").on("click",(event_=>{
+            if (self.moveOnBoard < self.chess.history().length)
+                self.setMoveOnBoard(self.moveOnBoard+1)
+        }))
+
+        this.midd("last_control").on("click",(event_=>{
+            self.setMoveOnBoard(self.chess.history().length)
+        }))
+    }
+
+    open_pgn_dlg(){
+        this.midd("myModal").show()
+    }
+
+    close_pgn_dlg(){
+        this.midd("myModal").hide()
+    }
+
+    load_pgn_dlg(){
+        
+        if (this.loadPGN(this.midd("newPgnText").val()))
+            this.close_pgn_dlg()
+    }
+
+    setStatus(x){
+        self.midd("myChess_status").html(x+"<br>"+self.score_message)
+    }
+
+    flip_board(){
+        this.board.flip()
+  
+        if (this.board.orientation()=="white")
+        {
+            this.midd("black_details").detach().appendTo("#"+this.mid("top_details"));
+            this.midd("white_details").detach().appendTo("#"+this.mid("bottom_details"));
+        }
+        else
+        {
+            this.midd("black_details").detach().appendTo("#"+this.mid("bottom_details"));
+            this.midd("white_details").detach().appendTo("#"+this.mid("top_details"));
+        }
+
+        self.moveorrequest()
+    }
+
+    scheduleNextMove(){
+
+        if (self.snm == false){
+            if (self.chess.history().length < self.moves.length){
+                self.snm = true
+                setTimeout(()=>{
+                    self.snm = false
+                    self.makeNextMove()
+                    self.setMoveOnBoard(9999)
+                },1000)
+            }
+        }
+    }
+
+    moveorrequest(){
+        if (self.chess.history().length == self.moves.length)
+        {
+            self.setStatus("Game is over")
+            self.rtm=false
+            return
+        }
+
+        if (self.chess.history().length < 10 )
+            {
+                self.setStatus("Opening replay")
+                self.rtm=false
+                self.scheduleNextMove()
+                return
+            }
+        
+        if ((self.chess.turn() === 'w' && self.board.orientation() == "black") ||
+            (self.chess.turn() === 'b' && self.board.orientation() == "white")) {
+            self.rtm = false
+            self.setStatus("")
+            self.scheduleNextMove()
+            return
+        }
+        if (self.moves[self.chess.history().length].eval_before == null)
+        {
+            self.setStatus("Please wait .  Evaluating Position")
+            self.rtm=false
+            return
+        }
+                
+        self.setStatus("Make the next move for "+ (self.chess.turn() === 'w' ? "white" : "black"))
+        self.rtm=true
+    }
+
+    makeNextMove(){
+        this.chess.move(this.moves[this.chess.history().length])
+        this.moveOnBoard += 1
+        this.midd("pgn").html(this.chess.pgn())
+
+        self.moveorrequest()
+
+        
+    }
+    constructor(boardID){
+        self = this
+        this.divId = boardID
+        this.parent = $("#"+boardID) 
+        this.chess = new Chess()
+        this.makeHTML()
+        var config = {
+            draggable: true,
+            position: 'start',
+            onDragStart: this.onDragStart,
+            onDrop: this.onDrop,
+            onSnapEnd: this.onSnapEnd
+          }
+        this.board = new Chessboard(this.mid("myBoard"), config)
+    
+        this.moves = []
+        this.moveOnBoard = 0
+        this.snm = false
+        self.score = 0
+        self.score_message = ""
+        
+
+    }
+
+    onDragStart (source, piece, position, orientation) {
+        
+
+        // only pick up pieces for the side to move
+        if ((self.chess.turn() === 'w' && piece.search(/^b/) !== -1) ||
+            (self.chess.turn() === 'b' && piece.search(/^w/) !== -1)) {
+          return false
+        }
+
+        //Only pick up peices if the board is showing the current position
+        if (self.moveOnBoard != self.chess.history().length)
+            return false
+
+        return self.rtm
+      }
+
+    onDrop (source, target) {
+        var correct_move = self.moves[self.chess.history().length]
+        
+        //See if it was a legal move
+        var move = self.chess.move({
+            from: source,
+            to: target,
+            promotion: 'q' // NOTE: always promote to a queen for example simplicity
+          })
+
+        if (move==null)
+            return "snapback"
+
+        //Undo the move to allow the later systems to make the correct move
+        self.chess.undo()
+
+        // see if the move mtches the game
+        if ((source != correct_move.from)  || (target != correct_move.to))
+        {
+            self.score_move(move)
+            self.scheduleNextMove()
+            return "snapback"
+        }
+        
+        self.score_move(self.moves[self.chess.history().length])
+        self.makeNextMove()
+    }
+
+    onSnapEnd () {
+        self.board.position(self.chess.fen())
+    }
+      
+    score_move(move){
+        console.log("----")
+        var correct_move = this.moves[this.chess.history().length]
+        if ((move.from == correct_move.from) && ((move.to) == correct_move.to))
+        {
+            
+            self.score += 3
+            self.score_message = "Correct Move. Current Score "+String(self.score)
+        }
+        else
+        {
+            var mode = 0
+            for (var x =0; x< 5;x++)
+            {
+                console.log(correct_move.eval_before[x].san,move.from+move.to)
+                if (correct_move.eval_before[x].san == move.from+move.to)
+                {
+                    if (mode == 0)
+                    {
+                        self.score += 3
+                        self.score_message = "Your move "+move.san+" was was better than the correct move. Current Score "+String(self.score)
+                        return
+                    }
+                    if (mode == 1)
+                    {
+                        self.score += 1
+                        self.score_message = "Your move "+move.san+" scored "+correct_move.eval_before[x].eval+". The master move was"+master_score+". Current Score "+String(self.score)
+                        return
+                    }
+                }
+
+                if (correct_move.eval_before[x].san == correct_move.from+correct_move.to)
+                {
+                    console.log("Master")
+                    var master_score = correct_move.eval_before[x].eval
+                    mode = 1
+                }
+
+            }
+            self.score_message = "Your move "+move.san+" was incorrect. Current Score "+String(self.score)
+        }
+    }
+
+
+}
+
+
+

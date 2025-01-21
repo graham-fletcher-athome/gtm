@@ -1,0 +1,157 @@
+<!DOCTYPE html>
+<html>
+<head>
+
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/chessboard-js/1.0.0/chessboard-1.0.0.min.css" integrity="sha512-TU/clvRaSqKB43MX6dvJPEWV8tEGDTbmT4mdxTs6DSYsBY9zKmiw4Qeykp0nS10ndH14HRNG2VWN+IjiMfA17Q==" crossorigin="anonymous" referrerpolicy="no-referrer" />
+<script src="https://code.jquery.com/jquery-1.12.4.js"></script>   
+<style>
+.container {
+  display: inline-grid;
+  grid-template-columns: auto auto auto;
+  padding: 10px;
+  margin: 0 auto;
+}
+.container > div {
+  background-color: #f1f1f1;
+  padding: 20px;
+  font-size: 20px;
+  text-align: center;
+}
+
+.myChess_title {
+  grid-column-start: 1;
+  grid-column-end: 4;
+  grid-row-start: 1;
+  grid-row-end: 2;
+}
+
+.myChess_board {
+  grid-column-start: 1;
+  grid-column-end: 3;
+  grid-row-start: 2;
+  grid-row-end: 3;
+}
+
+.myChess_details {
+  grid-column-start: 3;
+  grid-column-end: 4;
+  grid-row-start: 2;
+  grid-row-end: 3;
+  width: 250px;
+}
+.myChess_controls {
+  grid-column-start: 1;
+  grid-column-end: 4;
+  grid-row-start: 3;
+  grid-row-end: 4;
+}
+.dtls{
+  vertical-align: middle;
+  height: 15%;
+  display: table;
+  width: 100%
+
+}
+
+#pgn{
+  height: 220pt;
+  text-align: left;
+  vertical-align: top;
+  overflow: auto;
+  font-size: 14px;
+}
+
+.ct {
+display: table-cell;
+text-align: center; /* Centers text Horizontally */
+vertical-align: middle; /* Centers text Vertically */
+font-size: 16px;
+} 
+
+.center-screen {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  text-align: center;
+  min-height: 100vh;
+  width: 100%;
+  height: 100%;
+}
+/* The Modal (background) */
+.modal {
+display: none; /* Hidden by default */
+position: fixed; /* Stay in place */
+z-index: 1; /* Sit on top */
+left: 0;
+top: 0;
+width: 100%; /* Full width */
+height: 100%; /* Full height */
+overflow: auto; /* Enable scroll if needed */
+background-color: rgb(0,0,0); /* Fallback color */
+background-color: rgba(0,0,0,0.4); /* Black w/ opacity */
+}
+
+/* Modal Content/Box */
+.modal-content {
+background-color: #fefefe;
+margin: 15% auto; /* 15% from the top and centered */
+padding: 20px;
+border: 1px solid #888;
+width: 80%; /* Could be more or less, depending on screen size */
+}
+
+/* The Close Button */
+close {
+color: #aaa;
+float: right;
+font-size: 28px;
+font-weight: bold;
+}
+
+close:hover,
+close:focus {
+color: black;
+text-decoration: none;
+cursor: pointer;
+}
+</style>
+</head>
+<body>
+  <table style="width: 100%;"><tr></tr><tr><td style="width: 20%;" ></td><td align="center">
+  <div id = "board">
+
+  </div>
+  </td><td style="width: 20%;"></td></tr></table>
+
+
+<div id="myModal" class="modal">
+  <div class="modal-content" style="width: 350px;">      
+      <table>
+        <tr> <th colspan="2" align="center">Paste PGN file here</th></tr>
+        <tr> <th colspan="2" align="center" id = "modalMessage"></th> </tr>
+    
+        <tr> <td colspan="2"> <textarea name="newPGNtext" id="newPgnText" cols="40" rows="5"></textarea> </td> </tr>
+        <tr> <td align="center" style="width: 50%"> <button onClick="x = newPGN($('#newPgnText').val()); if ( x == true) closePngDlg(); else $('#modalMessage').html(x)" style="width: 90%" >Load</button></td>
+             <td align="center" style="width: 50%"> <button onClick="closePngDlg();" style="width: 90%">Cancel</button></td></tr>
+      </table>
+    </div>
+</div>
+
+
+
+
+
+
+
+<script type = "module">
+import {myChess} from "./myChess.js"
+var mc = new myChess("board")
+mc.loadPGN("1. e4 e5 2. Nf3 Nc6 3. Bc5")
+console.log(mc.moves)
+mc.setMoveOnBoard(3)
+</script>
+
+
+
+</body>
+</html>
