@@ -12,6 +12,17 @@ export class myChess{
         return $("#"+this.mid(c))
     }
 
+    loadPGNfromlibrary(fn){
+        fetch("./pgn_lib/"+fn+".pgn")
+        .then(response => response.text())
+        .then(data => {
+            this.loadPGN(data)
+        })
+        .catch(error => {
+                console.error('Error loading the text file:', error);
+        });
+    }
+
     loadPGN(pgn){
 
         var chess = new Chess()
