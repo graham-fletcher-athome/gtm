@@ -29,6 +29,10 @@ export class gem{
         this.midd('notes_txt').val(text)
     }
 
+    updateComment(){
+        this.mc.moves[this.mc.moveOnBoard-1].comment = this.midd('notes_txt').val()
+    }
+
     html(){
         var self=this
         this.parent.html(`
@@ -41,7 +45,9 @@ export class gem{
         `)
 
         
-
+        self.midd("notes_txt").on("keyup",(e)=>{
+            self.updateComment()
+        })
         self.showNotes()
         
     }
