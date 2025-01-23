@@ -1,6 +1,7 @@
 import "https://cdnjs.cloudflare.com/ajax/libs/chessboard-js/1.0.0/chessboard-1.0.0.js"
 import {Chess} from "https://cdnjs.cloudflare.com/ajax/libs/chess.js/0.13.4/chess.min.js"
 import {analyse} from "./engine.js"
+import {gem} from "./gem.js"
 
 var board
 
@@ -13,9 +14,11 @@ export class myChess{
     }
 
     loadPGNfromlibrary(fn){
+        console.log(fn)
         fetch("./pgn_lib/"+fn+".pgn")
         .then(response => response.text())
         .then(data => {
+            console.log(data)
             this.loadPGN(data)
         })
         .catch(error => {
@@ -23,9 +26,10 @@ export class myChess{
         });
     }
 
-    loadPGN(pgn){
+    loadPGN(pgn,secret){
 
         var chess = new Chess()
+        this.gem.secret = secret
         if (chess.load_pgn(pgn) != null)
         {
             this.moves = chess.history({ verbose: true })
@@ -92,6 +96,7 @@ export class myChess{
             this.chess = chess
             this.setMoveOnBoard(0)
             this.moveorrequest()
+            this.gem.context(pgn)
             return true
         }
         else
@@ -162,6 +167,10 @@ export class myChess{
                     '<button id="'+this.mid("back_control")+'">  \< </button>'+
                     '<button id="'+this.mid("forward_control")+'" >  \> </button>'+
                     '<button id="'+this.mid("last_control")+'" >  \>\> </button>'+
+                    '<button id="'+this.mid("reportButton")+'" >Report</button>'+
+                    '<button id="'+this.mid("notesButton")+'" >Notes</button>'+
+                '</div>'+
+                '<div id="'+this.mid("mygem")+'"class="myChess_gem"> '+
                 '</div>'+
             '</div>' +
             '<div id="'+this.mid("myModal")+'" class="modal">'+
@@ -170,6 +179,7 @@ export class myChess{
                         '<tr> <th colspan="2" align="center">Paste PGN file here</th></tr>'+
                         '<tr> <th colspan="2" align="center" id = "modalMessage"></th> </tr>'+
                         '<tr> <td colspan="2"> <textarea name="newPGNtext" id="'+this.mid("newPgnText")+'" cols="40" rows="5"></textarea> </td> </tr>'+
+                        '<tr> <td colspan="2"> <input type="text" id ="'+this.mid("secret")+'"></td></tr>'+
                         '<tr> <td align="center" style="width: 50%"> <button id="'+this.mid("dlg_load")+'" style="width: 90%" >Load</button></td>'+
                              '<td align="center" style="width: 50%"> <button id="'+this.mid("dlg_close")+'" style="width: 90%">Cancel</button></td></tr>'+
                     '</table>'+
@@ -178,6 +188,7 @@ export class myChess{
 
             
         )
+        this.gem=new gem(this.mid("mygem"),this)
         this.midd("flip_control").on("click",(event) => {
             self.flip_board()
         })
@@ -211,6 +222,14 @@ export class myChess{
         this.midd("last_control").on("click",(event_=>{
             self.setMoveOnBoard(self.chess.history().length)
         }))
+
+        this.midd("notesButton").on("click",(e)=>{
+            self.gem.showNotes()
+        })
+
+        this.midd("reportButton").on("click",(e)=>{
+            self.gem.showReport()
+        })
     }
 
     open_pgn_dlg(){
@@ -223,7 +242,7 @@ export class myChess{
 
     load_pgn_dlg(){
         
-        if (this.loadPGN(this.midd("newPgnText").val()))
+        if (this.loadPGN(this.midd("newPgnText").val(), this.midd("secret").val()))
             this.close_pgn_dlg()
     }
 
@@ -263,6 +282,7 @@ export class myChess{
     }
 
     moveorrequest(){
+
         if (self.chess.history().length == self.moves.length)
         {
             self.setStatus("Game is over")
@@ -380,6 +400,7 @@ export class myChess{
     score_move(move){
         console.log("----")
         var correct_move = this.moves[this.chess.history().length]
+        console.log(correct_move)
         if ((move.from == correct_move.from) && ((move.to) == correct_move.to))
         {
             
@@ -388,35 +409,66 @@ export class myChess{
         }
         else
         {
-            var mode = 0
+            var correct_score = null
+            var actual_score = null
             for (var x =0; x< 5;x++)
             {
-                console.log(correct_move.eval_before[x].san,move.from+move.to)
-                if (correct_move.eval_before[x].san == move.from+move.to)
-                {
-                    if (mode == 0)
-                    {
-                        self.score += 3
-                        self.score_message = "Your move "+move.san+" was was better than the correct move. Current Score "+String(self.score)
-                        return
-                    }
-                    if (mode == 1)
-                    {
-                        self.score += 1
-                        self.score_message = "Your move "+move.san+" scored "+correct_move.eval_before[x].eval+". The master move was"+master_score+". Current Score "+String(self.score)
-                        return
-                    }
-                }
 
-                if (correct_move.eval_before[x].san == correct_move.from+correct_move.to)
+                if ((correct_move.eval_before[x] != null) && (correct_move.eval_before[x].san == move.from+move.to))
+                    actual_score = correct_move.eval_before[x].eval
+
+                if ((correct_move.eval_before[x] != null) && (correct_move.eval_before[x].san == correct_move.from+correct_move.to))
                 {
-                    console.log("Master")
-                    var master_score = correct_move.eval_before[x].eval
-                    mode = 1
+                    correct_score = correct_move.eval_before[x].eval
                 }
 
             }
-            self.score_message = "Your move "+move.san+" was incorrect. Current Score "+String(self.score)
+            if ((actual_score == null) || (actual_score < (correct_score -5)))
+            {
+                self.score -= 2
+                if (self.score < 0)
+                    self.score = 0
+                self.score_message = "Your move "+move.san+" was incorrect. Sorry you lost 2 points. Current Score "+String(self.score)
+                return
+            }
+
+            if ((correct_score == null) || (actual_score >= (correct_score +5)))
+            {
+                self.score += 10
+                self.score_message = "Your move "+move.san+" was much better. Wow 10 points. Current Score "+String(self.score)
+                return
+            }
+
+            if (actual_score >= correct_score +0.5)
+                {
+                    self.score += 5
+                    self.score_message = "Your move "+move.san+" was better than the masters move. You got 5 points. Current Score "+String(self.score)
+                    return
+                }
+
+            if (actual_score >= correct_score )
+            {
+                self.score += 3
+                self.score_message = "Your move "+move.san+" was as good as the masters move. You got 3 points. Current Score "+String(self.score)
+                return
+            }
+
+            if (actual_score >= correct_score - 1 )
+            {
+                self.score += 2
+                self.score_message = "Your move "+move.san+" was as nearly as good as the masters move. You got 2 points. Current Score "+String(self.score)
+                return
+            }
+
+            if (actual_score >= correct_score - 3 )
+            {
+                self.score += 1
+                self.score_message = "Your move "+move.san+" was ok. You got 1 point. Current Score "+String(self.score)
+                return
+            }
+
+            self.score_message = "You didnt get any points, but you didnt go down either!. Current Score "+String(self.score)
+                return
         }
     }
 

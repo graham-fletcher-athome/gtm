@@ -1,5 +1,4 @@
 
-
 export function analyse(fen,cb) {
   /* Returns the analysis for a fen if it exists or adds it to the analysis queue if it doesnt*/
 
@@ -61,7 +60,7 @@ function __nextAnalysis()
           
           __stockfishWorker.postMessage(`position fen `+ __analysisRunning);
           __stockfishWorker.postMessage(`setoption name MultiPV value 5`)
-          __stockfishWorker.postMessage("go depth 15")
+          __stockfishWorker.postMessage("go depth 12")
       }
     }
     else
@@ -72,7 +71,6 @@ function __nextAnalysis()
 function __processMessages(event){
   const message = event.data;
   __stockfishReady = true
-
   if( message.match("^bestmove.*$") !== null)
   {
     __savedAnalysis[__analysisRunning] = __currentAnalysis
@@ -82,14 +80,21 @@ function __processMessages(event){
     __nextAnalysis()
   }
 
-  var m= message.match("^info depth (?<depth>[0123456789]+) .+?(?= multipv) multipv (?<mpv>[0123456789]+) score (?<sc>cp [-0123456789]+) .+?(?= pv) pv (?<m>[12345678abcdefgh\+\=RQBN#]+) .*")
+  var m= message.match("^info depth (?<depth>[0123456789]+) .+?(?= multipv) multipv (?<mpv>[0123456789]+) score (?<sct>[cpmate]*) (?<sc>[-0123456789]+) .+?(?= pv) pv (?<m>[12345678abcdefgh\+\=RQBN#]+) .*")
   if (m!== null)
   {
+    var x = m[3]=="cp"?Number(m[4]):(Number(m[4])<0?-2000:2000)
+    var prob = 50 + 50 * (2 / (1 + Math.exp(-0.00368208 * x)) - 1)
     __currentAnalysis[Number(m[2]-1)] = {
       depth: Number(m[1]),
-      eval : m[3],
-      san : m[4]
+      eval : prob,
+      san : m[5]
     }
+
   }
 };
+
+
+
+
 

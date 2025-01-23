@@ -7,7 +7,7 @@
 <style>
 .container {
   display: inline-grid;
-  grid-template-columns: auto auto auto;
+  grid-template-columns: auto auto auto auto;
   padding: 10px;
   margin: 0 auto;
 }
@@ -39,6 +39,17 @@
   grid-row-end: 3;
   width: 250px;
 }
+.myChess_gem {
+  grid-column-start: 4;
+  grid-column-end: 5;
+  grid-row-start: 1;
+  grid-row-end: 4;
+  width: 400px;
+  display: inline-block;
+  overflow-y: auto;
+  height: 611px;
+}
+
 .myChess_controls {
   grid-column-start: 1;
   grid-column-end: 4;
@@ -117,25 +128,13 @@ cursor: pointer;
 </style>
 </head>
 <body>
-  <table style="width: 100%;"><tr></tr><tr><td style="width: 20%;" ></td><td align="center">
-  <div id = "board">
-
+  
+  <div id = "board" style="display: block; overflow: auto; margin: 10pt auto" class="center-screen">
   </div>
-  </td><td style="width: 20%;"></td></tr></table>
+  
 
 
-<div id="myModal" class="modal">
-  <div class="modal-content" style="width: 350px;">      
-      <table>
-        <tr> <th colspan="2" align="center">Paste PGN file here</th></tr>
-        <tr> <th colspan="2" align="center" id = "modalMessage"></th> </tr>
-    
-        <tr> <td colspan="2"> <textarea name="newPGNtext" id="newPgnText" cols="40" rows="5"></textarea> </td> </tr>
-        <tr> <td align="center" style="width: 50%"> <button onClick="x = newPGN($('#newPgnText').val()); if ( x == true) closePngDlg(); else $('#modalMessage').html(x)" style="width: 90%" >Load</button></td>
-             <td align="center" style="width: 50%"> <button onClick="closePngDlg();" style="width: 90%">Cancel</button></td></tr>
-      </table>
-    </div>
-</div>
+
 
 
 
@@ -147,8 +146,7 @@ cursor: pointer;
 import {myChess} from "./myChess.js"
 var mc = new myChess("board")
 mc.loadPGNfromlibrary("Fisher_ Spassky_1992_11_04_FS_Return_Match")
-console.log(mc.moves)
-mc.setMoveOnBoard(3)
+
 </script>
 
 
