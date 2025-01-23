@@ -131,7 +131,7 @@ async function gemCall(parameters) {
   
     } catch (error) {
       console.error('Error calling Cloud Function:', error);
-      throw error
+      throw error  
     }
   }
   
