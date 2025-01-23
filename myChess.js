@@ -26,6 +26,25 @@ export class myChess{
         });
     }
 
+    exportPGN(){
+        var ch = new Chess()
+
+        for (let k in this.header)
+            ch.header(k,this.header[k])
+
+
+        for (var x = 0; x < this.moves.length; x++)
+        {
+            ch.move(this.moves[x])
+            if (this.moves[x].comment)
+                ch.set_comment(this.moves[x].comment)
+        }
+
+        var pgn = ch.pgn()
+        console.log(pgn)
+        return pgn
+    }
+
     loadPGN(pgn,secret){
 
         var chess = new Chess()
@@ -172,7 +191,7 @@ export class myChess{
                 '</div>'+
                 '<div id="'+this.mid("controls")+'" class="myChess_controls">'+
                     '<button id="'+this.mid("flip_control")+'" style="width:15%"> Flip board </button>'+
-                    '<button id="'+this.mid("load_control")+'" style="width:15%">  Load PGN </button>'+
+                    '<button id="'+this.mid("load_control")+'" style="width:15%">  PGN </button>'+
                     '<button id="'+this.mid("first_control")+'">  \<\< </button>'+
                     '<button id="'+this.mid("back_control")+'">  \< </button>'+
                     '<button id="'+this.mid("forward_control")+'" >  \> </button>'+
@@ -186,12 +205,12 @@ export class myChess{
             '<div id="'+this.mid("myModal")+'" class="modal">'+
                 '<div class="modal-content" style="width: 350px;">'+      
                     '<table>'+
-                        '<tr> <th colspan="2" align="center">Paste PGN file here</th></tr>'+
+                        '<tr> <th colspan="2" align="center">Copy/Paste PGN file here</th></tr>'+
                         '<tr> <th colspan="2" align="center" id = "modalMessage"></th> </tr>'+
                         '<tr> <td colspan="2"> <textarea name="newPGNtext" id="'+this.mid("newPgnText")+'" cols="40" rows="5"></textarea> </td> </tr>'+
                         '<tr> <td colspan="2"> <input type="text" id ="'+this.mid("secret")+'"></td></tr>'+
-                        '<tr> <td align="center" style="width: 50%"> <button id="'+this.mid("dlg_load")+'" style="width: 90%" >Load</button></td>'+
-                             '<td align="center" style="width: 50%"> <button id="'+this.mid("dlg_close")+'" style="width: 90%">Cancel</button></td></tr>'+
+                        '<tr> <td align="center" style="width: 50%"> <button id="'+this.mid("dlg_load")+'" style="width: 90%" >Start</button></td>'+
+                             '<td align="center" style="width: 50%"> <button id="'+this.mid("dlg_close")+'" style="width: 90%">Close</button></td></tr>'+
                     '</table>'+
                 '</div>'+
             '</div>'
@@ -208,7 +227,7 @@ export class myChess{
         })
 
         this.midd("dlg_close").on("click",(event)=>{
-            self.clode_pgn_dlg()
+            self.close_pgn_dlg()
         })
 
         this.midd("dlg_load").on("click",(event)=>{
@@ -243,6 +262,8 @@ export class myChess{
     }
 
     open_pgn_dlg(){
+        var x = this.exportPGN()
+        this.midd("newPgnText").val(x)
         this.midd("myModal").show()
     }
 
