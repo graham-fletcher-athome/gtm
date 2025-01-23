@@ -45,7 +45,6 @@ export class myChess{
     }
 
     loadPGN(pgn,secret){
-
         var chess = new Chess()
         this.gem.secret = secret
         if (chess.load_pgn(pgn) != null)
@@ -123,6 +122,7 @@ export class myChess{
             this.setMoveOnBoard(0)
             this.moveorrequest()
             this.gem.context(pgn)
+
             return true
         }
         else
@@ -132,11 +132,14 @@ export class myChess{
     
 
     setMoveOnBoard(x){
+        console.log("smod",x)
+        console.log(this.chess.history())
         if (x > this.chess.history().length)
             x = this.chess.history().length
         if (x==0)
         {
             this.board.position(this.moves[x].fen_before)
+            console.log(this.moves[x])
             this.gem.setComment("Your notes")
             
         }
@@ -334,6 +337,8 @@ export class myChess{
 
     scheduleNextMove(){
 
+        console.log("snm",self.snm)
+
         if (self.snm == false){
             if (self.chess.history().length < self.moves.length){
                 self.snm = true
@@ -347,6 +352,7 @@ export class myChess{
     }
 
     moveorrequest(){
+        console.log(("mor"))
 
         if (self.chess.history().length == self.moves.length)
         {
@@ -382,10 +388,11 @@ export class myChess{
     }
 
     makeNextMove(){
+        console.log("mnm")
         this.moveOnBoard += 1
         this.midd("pgn").html(this.chess.pgn())
 
-        self.moveorrequest()
+        this.moveorrequest()
 
         
     }
