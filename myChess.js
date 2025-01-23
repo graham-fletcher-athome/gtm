@@ -14,11 +14,11 @@ export class myChess{
     }
 
     loadPGNfromlibrary(fn){
-        console.log(fn)
+        
         fetch("./pgn_lib/"+fn+".pgn")
         .then(response => response.text())
         .then(data => {
-            console.log(data)
+            
             this.loadPGN(data)
         })
         .catch(error => {
@@ -26,14 +26,33 @@ export class myChess{
         });
     }
 
-    loadPGN(pgn,secret){
+    exportPGN(){
+        var ch = new Chess()
 
+        for (let k in this.header)
+            ch.header(k,this.header[k])
+
+        for (var x = 0; x < this.moves.length; x++)
+        {
+            ch.move(this.moves[x])
+            if (this.moves[x].comment)
+                ch.set_comment(this.moves[x].comment)
+        }
+
+        var pgn = ch.pgn()
+        
+        return pgn
+    }
+
+    loadPGN(pgn,secret){
         var chess = new Chess()
         this.gem.secret = secret
         if (chess.load_pgn(pgn) != null)
         {
+            
             this.moves = chess.history({ verbose: true })
             var x = chess.header()
+            var comments = chess.get_comments()
             
             chess.reset()
 
@@ -47,6 +66,12 @@ export class myChess{
                 this.moves[i].eval_after = null
                 if ( i >=9 )
                     analyse(this.moves[i].fen_after, this.analysisReturn)
+
+                for (var j = 0; j < comments.length; j++){
+                    if (comments[j].fen == this.moves[i].fen_after)
+                        this.moves[i].comment = comments[j].comment
+
+                } 
             }
             chess.reset()
 
@@ -97,6 +122,7 @@ export class myChess{
             this.setMoveOnBoard(0)
             this.moveorrequest()
             this.gem.context(pgn)
+
             return true
         }
         else
@@ -106,16 +132,21 @@ export class myChess{
     
 
     setMoveOnBoard(x){
+        console.log("smod",x)
+        console.log(this.chess.history())
         if (x > this.chess.history().length)
             x = this.chess.history().length
         if (x==0)
         {
             this.board.position(this.moves[x].fen_before)
+            console.log(this.moves[x])
+            this.gem.setComment("Your notes")
             
         }
         else
         {
             this.board.position(this.moves[x-1].fen_after)
+            this.gem.setComment(this.moves[x-1].comment)
             
         }
         this.moveOnBoard = x
@@ -127,13 +158,11 @@ export class myChess{
         for(var j = 0; j < self.moves.length; j++){
             if (self.moves[j].fen_before == fen)
             {
-                
                 self.moves[j].eval_before = ca
                 self.moveorrequest()
             }
             if (self.moves[j].fen_after == fen)
             {
-            
                 self.moves[j].eval_after = ca
             }
 
@@ -162,7 +191,7 @@ export class myChess{
                 '</div>'+
                 '<div id="'+this.mid("controls")+'" class="myChess_controls">'+
                     '<button id="'+this.mid("flip_control")+'" style="width:15%"> Flip board </button>'+
-                    '<button id="'+this.mid("load_control")+'" style="width:15%">  Load PGN </button>'+
+                    '<button id="'+this.mid("load_control")+'" style="width:15%">  PGN </button>'+
                     '<button id="'+this.mid("first_control")+'">  \<\< </button>'+
                     '<button id="'+this.mid("back_control")+'">  \< </button>'+
                     '<button id="'+this.mid("forward_control")+'" >  \> </button>'+
@@ -176,12 +205,13 @@ export class myChess{
             '<div id="'+this.mid("myModal")+'" class="modal">'+
                 '<div class="modal-content" style="width: 350px;">'+      
                     '<table>'+
-                        '<tr> <th colspan="2" align="center">Paste PGN file here</th></tr>'+
+                        '<tr> <th colspan="2" align="center">Copy/Paste PGN file here</th></tr>'+
                         '<tr> <th colspan="2" align="center" id = "modalMessage"></th> </tr>'+
                         '<tr> <td colspan="2"> <textarea name="newPGNtext" id="'+this.mid("newPgnText")+'" cols="40" rows="5"></textarea> </td> </tr>'+
                         '<tr> <td colspan="2"> <input type="text" id ="'+this.mid("secret")+'"></td></tr>'+
-                        '<tr> <td align="center" style="width: 50%"> <button id="'+this.mid("dlg_load")+'" style="width: 90%" >Load</button></td>'+
-                             '<td align="center" style="width: 50%"> <button id="'+this.mid("dlg_close")+'" style="width: 90%">Cancel</button></td></tr>'+
+                        '<tr> <td colspan="2"> <div id ="'+this.mid("dlg_items")+'" style="font-size: 10px" ></div></tr>'+
+                        '<tr> <td align="center" style="width: 50%"> <button id="'+this.mid("dlg_load")+'" style="width: 90%" >Start</button></td>'+
+                             '<td align="center" style="width: 50%"> <button id="'+this.mid("dlg_close")+'" style="width: 90%">Close</button></td></tr>'+
                     '</table>'+
                 '</div>'+
             '</div>'
@@ -198,7 +228,7 @@ export class myChess{
         })
 
         this.midd("dlg_close").on("click",(event)=>{
-            self.clode_pgn_dlg()
+            self.close_pgn_dlg()
         })
 
         this.midd("dlg_load").on("click",(event)=>{
@@ -233,7 +263,45 @@ export class myChess{
     }
 
     open_pgn_dlg(){
+        var self = this
+        var x = this.exportPGN()
+        this.midd("newPgnText").val(x)
         this.midd("myModal").show()
+        fetch("./pgn_lib/")
+        .then(response => response.text())
+        .then(data => {
+            var lines = data.split(/\r?\n|\r|\n/g);
+            var html = ""
+            for(var x= 0; x < lines.length; x++){
+                var parts = lines[x].split('"')
+                if (parts[0] == "<li><a href=")
+                    html = html + '<a href="javascript:" class="'+this.mid("item_dlg_class")+'">'+decodeURI(parts[1])+'</a>';
+            }
+            
+            self.midd("dlg_items").html(html)
+            $("."+self.mid("item_dlg_class")).on("click",(e)=>{
+
+
+                fetch("./pgn_lib/"+e.target.text)
+                .then(response => response.text())
+                .then(data => {
+                    self.midd("newPgnText").val(data)
+                })
+                .catch(error => {
+                        console.error('Error loading the text file:', error);
+                });
+
+
+
+
+            })
+        })
+        .catch(error => {
+                console.error('Error loading the text file:', error);
+        });
+
+        
+        console.log($("."+this.mid("item_dlg_class")))
     }
 
     close_pgn_dlg(){
@@ -269,6 +337,8 @@ export class myChess{
 
     scheduleNextMove(){
 
+        console.log("snm",self.snm)
+
         if (self.snm == false){
             if (self.chess.history().length < self.moves.length){
                 self.snm = true
@@ -282,6 +352,7 @@ export class myChess{
     }
 
     moveorrequest(){
+        console.log(("mor"))
 
         if (self.chess.history().length == self.moves.length)
         {
@@ -317,13 +388,12 @@ export class myChess{
     }
 
     makeNextMove(){
-
         console.log("mnm")
         this.chess.move(this.moves[this.chess.history().length])
         this.moveOnBoard += 1
         this.midd("pgn").html(this.chess.pgn())
 
-        self.moveorrequest()
+        this.moveorrequest()
 
         
     }
