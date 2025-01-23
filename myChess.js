@@ -317,6 +317,8 @@ export class myChess{
     }
 
     makeNextMove(){
+
+        console.log("mnm")
         this.chess.move(this.moves[this.chess.history().length])
         this.moveOnBoard += 1
         this.midd("pgn").html(this.chess.pgn())
