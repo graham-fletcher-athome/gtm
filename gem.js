@@ -25,6 +25,10 @@ export class gem{
         this.move=move
     }
 
+    setComment(text){
+        this.midd('notes_txt').val(text)
+    }
+
     html(){
         var self=this
         this.parent.html(`

@@ -32,8 +32,10 @@ export class myChess{
         this.gem.secret = secret
         if (chess.load_pgn(pgn) != null)
         {
+            console.log(chess)
             this.moves = chess.history({ verbose: true })
             var x = chess.header()
+            var comments = chess.get_comments()
             
             chess.reset()
 
@@ -47,6 +49,12 @@ export class myChess{
                 this.moves[i].eval_after = null
                 if ( i >=9 )
                     analyse(this.moves[i].fen_after, this.analysisReturn)
+
+                for (var j = 0; j < comments.length; j++){
+                    if (comments[j].fen == this.moves[i].fen_after)
+                        this.moves[i].comment = comments[j].comment
+
+                } 
             }
             chess.reset()
 
@@ -111,11 +119,13 @@ export class myChess{
         if (x==0)
         {
             this.board.position(this.moves[x].fen_before)
+            this.gem.setComment("Your notes")
             
         }
         else
         {
             this.board.position(this.moves[x-1].fen_after)
+            this.gem.setComment(this.moves[x-1].comment)
             
         }
         this.moveOnBoard = x
