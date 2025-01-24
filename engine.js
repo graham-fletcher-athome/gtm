@@ -60,7 +60,7 @@ function __nextAnalysis()
           
           __stockfishWorker.postMessage(`position fen `+ __analysisRunning);
           __stockfishWorker.postMessage(`setoption name MultiPV value 5`)
-          __stockfishWorker.postMessage("go depth 12")
+          __stockfishWorker.postMessage("go depth 20")
       }
     }
     else
