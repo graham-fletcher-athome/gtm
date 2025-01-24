@@ -1,0 +1,202 @@
+[Event "Hoogovens Group A"]
+[Site "Wijk aan Zee NED"]
+[Date "1999.01.20"]
+[Round "4"]
+[White "Garry Kasparov"]
+[Black "Veselin Topalov"]
+[Result "1-0"]
+[EventDate "1999.01.16"]
+[ECO "B07"]
+[WhiteElo "2812"]
+[BlackElo "2700"]
+[PlyCount "87"]
+[Link "https://www.chess.com/analysis/library/35jqMSeWrr"]
+
+1. e4 {Kasparov has won many brilliant attacking games with both 1.e4 and 1.d4.
+Here he pursues an open game.} 1... d6 $5 {Kasparov is probably THE greatest
+opening theoretician of all time so it makes sense to avoid main lines against
+him. Topalov selects the less common Pirc Defense, but now he runs the risk of
+getting in trouble not because he is outprepared, but because the opening may be
+slightly dubious at the highest level.} 2. d4 {It is of course correct to
+establish the \"perfect pawn center\" against almost any hypermodern opening.}
+2... Nf6 {Topalov attacks the e4-pawn. A difference between the King's Indian
+Defense (1.d4 Nf6 2.c4 g6) and the Pirc Defense (1.e4 d6 2.d4 Nf6) is that it is
+natural now to play Nc3 which block the c-pawn that has already advanced to c4
+in the King's Indian.} 3. Nc3 {Kasparov develops and defends e4.} 3... g6
+{Topalov commits to the true \"Pirc\" defense with a kingside fianchetto. He
+could still have changed course and played ...e5 and played a \"Philidor
+Defense\" instead.} 4. Be3 {As is his way, Kasparov selects an aggressive setup,
+developing the bishop to pursue a quick queen and bishop battery and castle
+queenside.} 4... Bg7 {completing the fianchetto.} 5. Qd2 {This move already
+prepares queenside castling and Bh6. Kasparov's attacking ideas are taking
+shape.} 5... c6 $5 {An intriguing and flexible move $1 Rather than castling (which
+most beginners would play), Topalov adopts a very flexible expansion on the
+queenside which waits to see how Kasparov will deploy his forces without
+creating targets.} (5... Ng4 $6 {Exchanging the dark-square bishop would be a
+huge strategic achievement, but Topalov would only overextend if he tried this
+move.} 6. Bg5 h6 7. Bh4 g5 8. Bg3 $16 {The dark-square bishop survives, and
+Black's advanced kingside pawns may easily become targets.}) (5... O-O
+{Naturally Topalov avoids castling into the attack (though this is playable)
+when Kasparov would be able to fully commit to the wing assault.}) 6. f3 {This
+is a very useful (often essential) move in such positions. Kasparov secures e4
+and keeps a knight out of g4.} 6... b5 {Topalov expands on the queenside,
+creating prospects for an attack on White's king after 0-0-0, thinking about
+inconveniencing the c3-knight after ...b4, and giving space to the Bc8 to
+develop.} 7. Nge2 {This move is slightly odd since the knight has nowhere good
+to go right away and blocks the Bf1. Topalov has benefited slightly from his
+wait-and-see approach that makes it hard for Kasparov to commit his forces.} (7.
+Bd3 $14 {Stockfish prefers developing the bishop and TH $146 playing Nge2.}) 7...
+Nbd7 {The knight develops to it's most natural square, controlling e5 and c5.}
+8. Bh6 {A very committal decision from Kasparov. He elects to exchange the
+\"dragon bishop,\" but he must sideline his queen to achieve this strategic
+goal.} 8... Bxh6 {Topalov pulls Kasparov's queen to h6, where it is misplaced.}
+(8... O-O $2 {This would be very risky as Kasparov can immediately launch a
+kingside attack.} 9. h4 $16) 9. Qxh6 {recapturing} 9... Bb7 {The bishop develops
+and adds important control to the d5-square.} 10. a3 {Kasparov takes a moment to
+stop ...b4.} (10. Qg7 {Many beginners might play (or be worried about) this
+move.} 10... Rg8 {White can only retreat and as Black was never castling
+kingside anyway, nothing was accomplished.}) 10... e5 {Topalov finally makes a
+control commitment. He also shows his plan, ...Qe7 and 0-0-0.} (10... a5 $5 $14
+{The engine preferred more queenside expansion. It's move 10 and both players
+are still trying to figure out development and castling.}) 11. O-O-O {Now that
+Topalov has committed, Kasparov does too. ...e5 weakens the d-file, and it is
+the perfect time to castle and put a rook on it.} 11... Qe7 {Topalov places the
+queen in a perfect spot. It defends the dark-squares on all sides of the board
+and secures e5.} 12. Kb1 $1 {A grandmaster move $1 Kasparov is patient and places
+his king on the safer b1-square and frees c1 for his e2-knight.} 12... a6
+{Topalov secures b5  as d5 could have created problems.} 13. Nc1 $1 {The knight
+repositions and frees the f1-bishop.} 13... O-O-O {Topalov finally castles. In a
+classical sense, it is only here that we have left the opening as both players
+are mostly developed and are castled.} 14. Nb3 {The knight finishes it's journey
+and has a possible new target, a5.} 14... exd4 {Topalov can find no further
+improvements so he decides it's time to release the central tensions. Although
+his king is open, he is hoping his better centralized pieces (see the Bf1, Rh1,
+and Qh6) can benefit from central action.} 15. Rxd4 {Recapturing with the knight
+was of roughly equal value.} 15... c5 {The b7-bishop is released with a gain of
+tempo on the rook.} 16. Rd1 {The rook retreats to the first rank.} 16... Nb6
+{This one move activates both the knight and the Rd8 in the fight for d5. Black
+hopes to advance ...d5 soon.} 17. g3 {Kasparov needs to active his f1-bishop and
+h1-rook so he prepares Bh3.} 17... Kb8 {Topalov simply anticiaptes Bh3+} 18.
+Na5 $6 {This complex phase sees several inaccuracies from both players. Kasparov
+plays to trade off the b7-bishop, but Topalov can let him have it and use the
+time gained to break in the center.} (18. Qf4 $16) 18... Ba8 $6 {Topalov keeps the
+bishop, but he did not have to do so.} (18... d5 $1 {This was the perfect time to
+break in the center $1} 19. Nxb7 Kxb7 20. exd5 Nfxd5 $12 {Black's king feels drafty,
+but his central pieces offset this concern and give him equality.}) 19. Bh3 $2
+{Kasparov develops the bishop, but it would not be so useful on h3 had Topalov
+responded accurately on move 24.} (19. Qf4 $16 {again, it was better to
+recentralize.}) 19... d5 $1 {Topalov finally strikes out $1 His king is opened up,
+but his pieces are activated. Black is even better.} 20. Qf4+ {The queen
+recentralizes with a check. She's been longing to do so.} 20... Ka7 {Topalov's
+king appears to be fairly safe on a7...} 21. Rhe1 {Kasparov finally develops his
+lat piece. Don't wait until move 21 to develop your rooks, kids $1} 21... d4
+{Topalov keeps the e-file from opening and asks the knight to passively
+retreat.} 22. Nd5 {Kasparov strives to avoid passivity and advances so as to
+avoid the e-file. This is the move which commits Kasparov to a sacrificial path
+as (at a minimum) he will lose a pawn on d5.} 22... Nbxd5 {This is the correct
+knight to capture with as the black king has access to b6 now.} 23. exd5
+{opening the e-file.} 23... Qd6 {The queen blockades the d-pawn which appears to
+be a goner.} 24. Rxd4 $3 {A thunderous move $3 $1 Kasparov sacrifices a rook in the
+hope of a mating attack. Topalov has a huge decision here. Should he accept the
+audacious sacrifice or decline $2} (24. Nc6+ $5 {This might be the \"best\" course
+of action, but only Black can be better in the endgame, and Topalov will have
+little way to go wrong.} 24... Bxc6 25. Qxd6 Rxd6 26. dxc6 $17) 24... cxd4 $2
+{Topalov accepts, following one of my favorite maxims, \"If you cannot see a
+reason not to take material, take it. You will either get material or a
+lesson.\" Here Topalov gets a lesson as Kasparov's sacrifice proves sound. We
+should all be grateful to Topalov for being willing to venture down this road,
+but declining the sacrifice could have gained a clear advantage.} (24... Kb6 $1
+{This move was much cited after the match. Instead of taking the rook, Black
+plays a daring king move and places the knight on a5 and the rook under attack.
+This disrupts White's mating patterns, and an endgame is now unavoidable.} 25.
+b4 Qxf4 26. Rxf4 Nxd5 27. Rxf7 cxb4 28. axb4 Nxb4 29. Nb3 Bd5 30. Rf6+ Nc6 $17
+{Black is better in this endgame due to good pieces and strong queenside pawns.
+There are decent winning chances.}) (24... Rhe8 $2 {I quite like this move which
+activates the last undeveloped piece. I think this give the most winning chances
+to Black.} 25. Rxe8 Nxe8 26. Qxf7+ $16) 25. Re7+ $3 {A second rook sacrifice to
+justify the first $1 This one cannot be accepted though.} (25. Qxd4+ $4 Qb6 26.
+Re7+ Nd7 {And since White's queen is hanging, the attack falters in this line.})
+25... Kb6 {Topalov has no choice but to run the monarch up the board and attack
+the knight.} (25... Qxe7 $2 {Kasparov now has a pretty mate in four.} 26. Qxd4+
+Kb8 27. Qb6+ Bb7 (27... Qb7 28. Nc6#) 28. Nc6+ Ka8 29. Qa7#) (25... Kb8 $2 {The
+problem here is that the h8-rook hangs in the end of the lines. The devil is in
+the details $1} 26. Qxd4 Nd7 (26... Rd7 27. Bxd7 $18) (26... Qxe7 27. Qb6+ {is the
+same as immediately capturing the rook.}) 27. Rxd7 Rxd7 28. Bxd7 Qxd7 29. Qxh8+
+$18) 26. Qxd4+ $1 {The knight on a5 is sacrificed as well to force Topalov's king
+into a mating net.} 26... Kxa5 {Topalov accepts the knight. His king is netted,
+but the final mate is difficult to force.} (26... Qc5 27. Qxf6+ Qd6 (27... Kxa5 $2
+28. b4+ $18) 28. Be6 $3 {An amazing solution put forward by Kasparov $1 This stops
+the queen trades and keeps White's pieces in a dominating position. The threat
+is just b4 and Qd4+ mating.} 28... Kxa5 (28... Rhe8 29. b4 Rxe7 30. Qd4+ Kc7 31.
+Qa7+ {Another magnificent final position.}) 29. b4+ Ka4 30. Qc3 Bxd5 31. Kb2
+Bxe6 32. Qb3+ Bxb3 33. cxb3#) 27. b4+ {Forcing the king to a4.} 27... Ka4 {Can
+the king survive here $2} 28. Qc3 {Kasparov threatens mate with Qb3. He is
+combining ideas of Qb3# and Ra7-a6# to stretch Topalov's defenses to the
+maximum.} (28. Ra7 $1 {This is even stronger thanks to some great resources. We
+will show just a few to appreciate the beauty of the ideas.} 28... Nxd5 (28...
+Rc8 29. Qd3 Rxc2 30. Qxc2+ Kxa3 31. Qc3+ Ka4 32. Rxa6+ Qxa6 33. Kb2 Bxd5 34.
+Qa3# {Yet another mate to remember.}) (28... Bxd5 29. Qc3 Rhe8 30. Kb2 Re2 31.
+Qc7 Qxc7 32. Rxa6+ Qa5 33. Rxa5#) (28... Bb7 29. Rxb7 {Modern analysis has shown
+an advantage in all lines, but we leave the position here.}) 29. Rxa6+ $3 Qxa6
+30. Qb2 Nc3+ 31. Qxc3 Bd5 32. Kb2 Rc8 33. Qb3+ Bxb3 34. cxb3#) 28... Qxd5 (28...
+Bxd5 $2 {This loses immediately because the bishop interferes with the black
+queen's defensive lines.} 29. Kb2 {Qb3# is now unstoppable since Black's Qd6 can
+neither defend b3 again or reach d4 to pin the white queen.} 29... Qxe7 30.
+Qb3+ $1 Bxb3 31. cxb3# {What a stunning checkmate $3 $1}) 29. Ra7 (29. Kb2 $4 {This
+threatens Qb3#, but Black can save the day with a pin.} 29... Qd4 $19) (29. Qc7
+{This is an important drawing resource. The mate threat on a5 compels Black to
+take a draw. If Kasparov became concerned that he risked too much in playing on,
+he had this out.} 29... Qd1+ 30. Kb2 Qd4+ $12) 29... Bb7 $1 {The only viable way to
+defend a6 is to give up this bishop.} (29... Rd6 $2 {This defends a6, but the
+rook's occupation means that ...Qd4 is no longer available as a defense to Kb2 $1}
+30. Kb2 Qd4 {This stops Qb3 mating, but it allows Rxa6#} 31. Qxd4 Rxd4 32.
+Rxa6#) (29... Qd1+ $2 {A bad check.} 30. Kb2 $18 {With Qb3# and Rxa6# both
+threatened, Black must concede.}) 30. Rxb7 {Kasparov takes the bishop, but he
+gives Topalov a moment to organize a defense, and he is still down a rook.}
+30... Qc4 {Topalov offers a queen trade and resolves the threat of Qb3#, but he
+surrenders the knight on f6.} (30... Rhe8 {Activating the as-yet-undeveloped
+rook was a very thematic defense.} 31. Rb6 Ra8 32. Bf1 $3 Re1+ 33. Qxe1 Nd7 34.
+Rb7 $3 Qxb7 35. Qd1 Kxa3 36. c3 Nb6 37. Qc1+ Ka4 38. Qc2+ Ka3 39. Qa2#) 31. Qxf6
+{Of course, Kasparov would never trade queens, but he can win a knight while
+evading simplification He also threatens mate on a6.} (31. Ra7 $4 {This threat of
+mate doesn't allow Black to capture the queen immediately, but an intermediate
+check wins the game.} 31... Qxc3 $4 (31... Rd1+ $1 32. Kb2 Qxc3+ 33. Kxc3 Rd6 $19)
+32. Rxa6#) 31... Kxa3 $2 {Topalov elects to take a pawn and gain some royal
+breathing room.} (31... Rd1+ $1 {This was the last viable defense. Topalov could
+reach a very slightly worse endgame by trading queens in a moment.} 32. Kb2 Ra8
+33. Qb6 Qd4+ 34. Qxd4 Rxd4 35. Rxf7 $14) 32. Qxa6+ {The play is forced from here
+on.} 32... Kxb4 {Topalov has eliminated the dangerous a3-b4 pawns. Has he found
+relief $2} 33. c3+ $1 {Kasparov shows that the attack is not over $1 Topalov has no
+good way to respond.} 33... Kxc3 {This is the most logical try. Topalov
+eliminates the pawn and runs his king toward the open center.} (33... Qxc3 $2
+{allows immediate mate.} 34. Qxb5+ Ka3 35. Qa6+ Qa5 36. Qxa5#) (33... Kc5 {drops
+the queen.} 34. Rc7+ $18) (33... Kb3 $2 {Now Kasparov can pick up the queen with a
+series of checks.} 34. Qa2+ Kxc3 35. Qb2+ Kd3 36. Bf1+ $18) 34. Qa1+ $1 {There is
+something particularly beautiful about the queen falling back to the corner,
+utilizing the whole board. Both Qa3 and Qa5 allow Topalov to interpose with
+check and trade queens.} 34... Kd2 {Perhaps the king will be safe on d1 $2} (34...
+Kb4 35. Qb2+ Qb3 36. Rxb5+ $18 {Picks up the queen with a classic decoy.}) (34...
+Kd3 35. Bf1+ {skewered again.}) 35. Qb2+ {Kasparov continues the hunt. Can Black
+find a safe square $2} 35... Kd1 {Topalov's king reaches the opposite rank, and it
+looks safe on d1 $1 Kasparov is out of checks and still down material, PLUS ...Rd2
+and ...Qd3+ $1 are huge threats. Is Topalov just winning $2} (35... Ke1 36. Re7+ $18)
+(35... Ke3 36. Re7+ Kxf3 37. Qg2# {is a funny mate.}) 36. Bf1 $3 {A-M-A-Z-I $146-G $1
+Kasparov delivers a shot that wins the game. The bishop cannot be taken, and the
+attacked Black queen cannot defend checks on c1, c2, and e2.} 36... Rd2 {A great
+try from Topalov $1 He leaves his queen hanging and counter-attacks Kasparov's
+queen. Once agains, it appears that Topalov has saved the game.} (36... Qxf1 37.
+Qc2+ Ke1 38. Re7+ $18) (36... Qe6 37. Qc1# {another picture-perfect mate.}) 37.
+Rd7 $3 {Kasparov has all the answers. He pins the d2-rook and renews his threat
+the the black queen, PLUS he now threatens mate on d2.} 37... Rxd7 {Topalov has
+no choice. He must take the rook and surrender his queen.} 38. Bxc4 {cashing
+in.} 38... bxc4 {recapturing. There is no time to save h8 as Rc1 mate was
+threatened.} 39. Qxh8 {The \"sting in the tail\" of this long battle. At the end
+of these tactics, the rook in the corner falls and Kasparov now wins with
+relative ease.} 39... Rd3 {Threatening the f3-pawn.} 40. Qa8 {Defending f3 and
+threatening Qa4+ winning c4.} 40... c3 {Threatening a winning c2+} 41. Qa4+
+{Resolving the c2 threat and pushing Black's king away.} 41... Ke1 {hoping to
+attack and eliminate the kingside pawns.} 42. f4 {securing the f-pawn.} 42... f5
+{also securing a loose f-pawn.} 43. Kc1 {The king firmly blockades the c-pawn
+and eliminates and hope of counterplay.} 43... Rd2 {attacking h2.} 44. Qa7
+{defending h2 (due to Qg1+) and threatening both Qe3+ and Qxa7. Topalov selected
+a good moment to resign here.} 1-0

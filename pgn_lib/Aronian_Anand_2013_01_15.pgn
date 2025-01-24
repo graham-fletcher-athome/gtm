@@ -1,0 +1,53 @@
+[Event "Tata Steel Group A"]
+[Site "Wijk aan Zee NED"]
+[Date "2013.01.15"]
+[Round "4"]
+[White "Levon Aronian"]
+[Black "Viswanathan Anand"]
+[Result "0-1"]
+[EventDate "2013.01.12"]
+[ECO "D47"]
+[WhiteElo "2802"]
+[BlackElo "2772"]
+[PlyCount "46"]
+[Link "https://www.chess.com/analysis/library/29ww3RNENS"]
+
+1. d4 d5 2. c4 c6 3. Nf3 Nf6 4. Nc3 e6 5. e3 Nbd7 6. Bd3 dxc4 7. Bxc4 b5 8. Bd3
+Bd6 9. O-O O-O 10. Qc2 Bb7 11. a3 Rc8 12. Ng5 $6 {[%c_effect
+g5;square;g5;type;Inaccuracy;persistent;true] In retrospect, this opening line
+is put to the test by Anand's response.} 12... c5 $1 {[%c_effect
+c5;square;c5;type;GreatFind;persistent;true] Black ALWAYS wants to play this in
+the Semi-Slav. Excellet tactics and analysis are needed to justify it here.}
+(12... Bxh2+ {This tactic does win a pawn, but it leaves White with the better
+pieces and the center.} 13. Kxh2 Ng4+ 14. Kg1 Qxg5 15. f3 Ngf6 16. e4 $14) 13.
+Nxh7 (13. Nxb5 $2 {[%c_effect b5;square;b5;type;Mistake;persistent;true]} 13...
+Bxh2+ {now this works.} 14. Kxh2 Ng4+ 15. Kg1 Qxg5 $17) (13. Bxb5 $2 {[%c_effect
+b5;square;b5;type;Mistake;persistent;true]} 13... cxd4 14. exd4 h6 15. Nh3 Qc7 $17
+{Black's pieces are humming.}) (13. Bxh7+ $5 {[%c_effect
+h7;square;h7;type;Interesting;persistent;true]} 13... Kh8 14. Be4 (14. f4 cxd4
+15. exd4 g6 {Anand gives a LOT of analysis here. I'll just say unclear.}) 14...
+Nxe4 15. Ncxe4 Be7 $13) 13... Ng4 14. f4 $2 {[%c_effect
+f4;square;f4;type;Mistake;persistent;true]} (14. h3 $1 {[%c_effect
+h3;square;h3;type;GreatFind;persistent;true]} 14... Bh2+ 15. Kh1 Qh4 {Anand also
+gives lots of analysis here. Both Be4 and d5 are interesting here.} 16. Be4 (16.
+d5)) 14... cxd4 15. exd4 Bc5 $3 {[%c_effect
+c5;square;c5;type;Brilliant;persistent;true] BOOM $1 Anand refutes White's setup
+in style. Suddenly, White finds himself overextended and beset by ideas of
+smothered mate.} 16. Be2 (16. dxc5 $2 {[%c_effect
+c5;square;c5;type;Mistake;persistent;true]} 16... Nxc5 17. Be2 (17. h3 Nxd3 18.
+hxg4 Qd4+ 19. Kh2 Kxh7 $17) 17... Qd4+ 18. Kh1 Nf2+ 19. Rxf2 Qxf2 {Mates are
+threatened on g2 and e1, and there is no defense.}) 16... Nde5 $3 {[%c_effect
+e5;square;e5;type;Brilliant;persistent;true] BOOMX2 $3 Anand's second minor-piece
+sacrifice forces the win. Anand's pieces breathe fire through the center of the
+board.} 17. Bxg4 (17. dxc5 $2 {[%c_effect
+c5;square;c5;type;Mistake;persistent;true]} 17... Qd4+ 18. Kh1 Nf2+ 19. Rxf2
+Qxf2 $19) (17. fxe5 $2 {[%c_effect e5;square;e5;type;Mistake;persistent;true]}
+17... Qxd4+ 18. Kh1 Qg1+ 19. Rxg1 Nf2#) 17... Bxd4+ 18. Kh1 Nxg4 19. Nxf8 (19.
+Ng5 f5 {...Rf6 and ...Rh6 is a winning idea.} 20. Nxe6 Qh4 $19) 19... f5 $1
+{[%c_effect f5;square;f5;type;GreatFind;persistent;true]} (19... Kxf8 20. Qh7
+{is trickier.}) 20. Ng6 Qf6 21. h3 (21. Ne5 Nxh2 $1 {[%c_effect
+h2;square;h2;type;GreatFind;persistent;true] The only winning move, but a
+completely decisive one.}) 21... Qxg6 22. Qe2 (22. hxg4 Qh6#) 22... Qh5 23. Qd3
+Be3 $1 {[%c_effect e3;square;e3;type;GreatFind;persistent;true] This interference
+move destroys the the defense of ...Qxh3+ and is completely decisive. A fine
+finish to an incredibly brilliant game.} 0-1
