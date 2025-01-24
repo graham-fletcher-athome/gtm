@@ -183,11 +183,17 @@ ${variations}
 Make sure you include strong continuations amongst your hints.
 Do not give hints where the continuations show it to be weak.
 
-Give your answer in raw text without formatting or any headings or lists. Aim for 200 to 300 word answer.
+Give your answer in raw text without formatting or any headings or lists. 
 Do not give the position,fen or move history in the answer. Do not give general advice, stick to the options in this position.
 The student already has this game details and general advice..
+`
 
-        `
+            pro = pro + `
+    Your student an 11 year old with an ELO of 800. Write your answer in a style to support them.
+    Keep the number of options to 2 or 3 and aim for an under 200 word answer.
+    Make sure the best move is in the list.
+
+            `
         gemCall({prompt:pro},self.mc.midd("secret").val())
         .then(data => {
             var raw_answer = $('<div>').html(data).text()
@@ -199,7 +205,7 @@ ${raw_answer}
 ---------------
 `)
         self.updateComment()
-        self.check_answer(pro,raw_answer,fen)
+        /*self.check_answer(pro,raw_answer,fen)*/
     
         })
         .catch(error =>{

@@ -220,6 +220,7 @@ export class myChess{
                     '<button id="'+this.mid("reportButton")+'" >Report</button>'+
                     '<button id="'+this.mid("notesButton")+'" >Notes</button>'+
                     '<button id="'+this.mid("feedbackButton")+'" >Hint</button>'+
+                    '<input type="checkbox",id="'+this.mid("simpleHints")+'" value="Simple"><\input>'+
                 '</div>'+
                 '<div id="'+this.mid("mygem")+'"class="myChess_gem"> '+
                 '</div>'+
