@@ -35,8 +35,13 @@ export class myChess{
         for (var x = 0; x < this.moves.length; x++)
         {
             ch.move(this.moves[x])
+            var cmt=""
+            if (this.moves[x].machine_comment)
+                cmt = cmt + "[" + this.moves[x].machine_comment + "]"
             if (this.moves[x].comment)
-                ch.set_comment(this.moves[x].comment)
+                cmt = cmt + this.moves[x].comment
+            if (cmt != "")
+                ch.set_comment(cmt)
         }
 
         var pgn = ch.pgn()
@@ -53,6 +58,20 @@ export class myChess{
             this.moves = chess.history({ verbose: true })
             var x = chess.header()
             var comments = chess.get_comments()
+            for (var i = 0; i < comments.length;i++)
+            {
+                
+                var match = "^[ ]*\\[(?<m1>(.*)?)\\](?<m2>.*)$" 
+                var m = comments[i].comment.match(match)
+                if (m != null)
+                {
+                    comments[i].machine_comment = m[1]
+                    comments[i].comment=m[3]
+                }
+                else
+                    comments[i].machine_comment = null
+              
+            }
             
             chess.reset()
 
@@ -69,7 +88,10 @@ export class myChess{
 
                 for (var j = 0; j < comments.length; j++){
                     if (comments[j].fen == this.moves[i].fen_after)
+                    {
                         this.moves[i].comment = comments[j].comment
+                        this.moves[i].machine_comment = comments[j].machine_comment
+                    }
 
                 } 
             }
@@ -273,7 +295,7 @@ export class myChess{
             for(var x= 0; x < lines.length; x++){
                 var parts = lines[x].split('"')
                 if (parts[0] == "<li><a href=")
-                    html = html + '<a href="javascript:" class="'+this.mid("item_dlg_class")+'">'+decodeURI(parts[1])+'</a>';
+                    html = html + '<a href="javascript:" class="'+this.mid("item_dlg_class")+'">'+decodeURI(parts[1])+'</a><br>';
             }
             
             self.midd("dlg_items").html(html)
