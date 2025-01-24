@@ -138,7 +138,6 @@ export class myChess{
         if (x==0)
         {
             this.board.position(this.moves[x].fen_before)
-            console.log(this.moves[x])
             this.gem.setComment("Your notes")
             
         }
