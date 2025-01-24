@@ -81,11 +81,10 @@ export class gem{
         self.pgn=pgn
         if ((self.secret) && (self.secret.length > 4))
             gemCall({prompt:`
-                In 100 words,Identify the game in the pgn below and give historical context if there is any. 
+                Identify the game in the pgn below and, if relivant, any historical context. 
                 List any published analyses by human authors.
-                Combine the published analyses of the game in 200 words.
-
-                Give your answer in an essay style with no headings. 
+                Summerise the published analyses of the game.
+                Your answer should be in an essay style and approximatly 500 words long. 
 
                 The pgn file is:   
                 ${pgn}
