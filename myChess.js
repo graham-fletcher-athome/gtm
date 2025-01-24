@@ -39,7 +39,7 @@ export class myChess{
             if (this.moves[x].machine_comment)
                 cmt = cmt + "[" + this.moves[x].machine_comment + "]"
             if (this.moves[x].comment)
-                cmt = cmt + this.moves[x].comment
+                cmt = cmt + this.moves[x].comment.replace("{","(").replace("}",")")
             if (cmt != "")
                 ch.set_comment(cmt)
         }
@@ -54,6 +54,7 @@ export class myChess{
         this.gem.secret = secret
         if (chess.load_pgn(pgn) != null)
         {
+            this.orig_pgn = pgn
             
             this.moves = chess.history({ verbose: true })
             var x = chess.header()
@@ -83,7 +84,7 @@ export class myChess{
                 this.moves[i].fen_after  = chess.fen()
                 this.moves[i].pgn_after = chess.pgn()
                 this.moves[i].eval_after = null
-                if ( i >=9 )
+                if ( i >=8 )
                     analyse(this.moves[i].fen_after, this.analysisReturn)
 
                 for (var j = 0; j < comments.length; j++){
@@ -218,6 +219,7 @@ export class myChess{
                     '<button id="'+this.mid("last_control")+'" >  \>\> </button>'+
                     '<button id="'+this.mid("reportButton")+'" >Report</button>'+
                     '<button id="'+this.mid("notesButton")+'" >Notes</button>'+
+                    '<button id="'+this.mid("feedbackButton")+'" >Hint</button>'+
                 '</div>'+
                 '<div id="'+this.mid("mygem")+'"class="myChess_gem"> '+
                 '</div>'+
@@ -239,6 +241,18 @@ export class myChess{
             
         )
         this.gem=new gem(this.mid("mygem"),this)
+
+        this.midd("feedbackButton").on("click",(event) =>{
+            console.log("p")
+            var p = self.moveOnBoard-1
+            console.log(p)
+            if (p >=0)
+            {
+                console.log(self.moves[p])
+                if (self.moves[p].eval_after != null)
+                    self.gem.position_feedback(self.orig_pgn,self.moveOnBoard,self.moves[p].eval_after)
+            }
+        })
         this.midd("flip_control").on("click",(event) => {
             self.flip_board()
         })

@@ -80,7 +80,7 @@ function __processMessages(event){
     __nextAnalysis()
   }
 
-  var m= message.match("^info depth (?<depth>[0123456789]+) .+?(?= multipv) multipv (?<mpv>[0123456789]+) score (?<sct>[cpmate]*) (?<sc>[-0123456789]+) .+?(?= pv) pv (?<m>[12345678abcdefgh\+\=RQBN#]+) .*")
+  var m= message.match("^info depth (?<depth>[0123456789]+) .+?(?= multipv) multipv (?<mpv>[0123456789]+) score (?<sct>[cpmate]*) (?<sc>[-0123456789]+) .+?(?= pv) pv (?<m>[12345678abcdefgh\+\=RQBN#]+)(?<rem>.*)")
   if (m!== null)
   {
     var x = m[3]=="cp"?Number(m[4]):(Number(m[4])<0?-2000:2000)
@@ -88,9 +88,10 @@ function __processMessages(event){
     __currentAnalysis[Number(m[2]-1)] = {
       depth: Number(m[1]),
       eval : prob,
-      san : m[5]
+      san : m[5],
+      line: m[5]+m[6],
+      reval: m[3]+" "+m[4]
     }
-
   }
 };
 

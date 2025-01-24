@@ -46,7 +46,7 @@ def vertex_chat_function(request):
     aiplatform.init(project=PROJECT_ID, location=LOCATION)
 
     # 3. Define the Model (Use the latest Gemini Model)
-    MODEL_NAME = "gemini-1.0-pro"
+    MODEL_NAME = "gemini-1.5-flash"
 
     # 4. Get the prompt from the request
     try:
