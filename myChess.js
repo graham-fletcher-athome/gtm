@@ -132,8 +132,7 @@ export class myChess{
     
 
     setMoveOnBoard(x){
-        console.log("smod",x)
-        console.log(this.chess.history())
+        
         if (x > this.chess.history().length)
             x = this.chess.history().length
         if (x==0)
@@ -337,8 +336,6 @@ export class myChess{
 
     scheduleNextMove(){
 
-        console.log("snm",self.snm)
-
         if (self.snm == false){
             if (self.chess.history().length < self.moves.length){
                 self.snm = true
@@ -352,7 +349,7 @@ export class myChess{
     }
 
     moveorrequest(){
-        console.log(("mor"))
+        
 
         if (self.chess.history().length == self.moves.length)
         {
@@ -388,7 +385,7 @@ export class myChess{
     }
 
     makeNextMove(){
-        console.log("mnm")
+        
         this.chess.move(this.moves[this.chess.history().length])
         this.moveOnBoard += 1
         this.midd("pgn").html(this.chess.pgn())
