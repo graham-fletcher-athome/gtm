@@ -102,6 +102,33 @@ export class gem{
             self.midd("context").html("");
     }
 
+    check_answer(prompt,raw_answer,fen){
+        var self=this
+        var new_prompt = `
+        In the following anaysis of a chess position made by an unreliable source. 
+
+        List all peice locations, stated or implied, for the current position only. Use the form "Peice is on square"
+        List all the candidate moves discussed. Use the form SAN is a candidate move.
+
+        The analysis was done from white's perspective
+
+        Give your answer in plain text 
+        
+
+        analysis:
+        ${raw_answer}
+
+        `
+        gemCall({prompt:new_prompt},self.mc.midd("secret").val())
+        .then(data => {
+            console.log(data)
+    
+        })
+        .catch(error =>{
+            console.error("Error:", error);
+        })
+    }
+
     position_feedback(pgn, movenumber, evl){
 
         /*Get the feedback from gemini on a position*/
@@ -141,8 +168,7 @@ export class gem{
             }
         }
 
-
-        gemCall({prompt:`
+        var pro = `
 
 Answering as if you were are a chess coach.
 Give hints to help your student identify possible moves in the chess position in the FEN:
@@ -154,24 +180,26 @@ ${pre_moves}
 To help with your analysis here are some continuations:
 ${variations}
 
-Do not list these continuations in your answer, but you may use the first moves and descibe their concequences if you wish.
+Make sure you include strong continuations amongst your hints.
+Do not give hints where the continuations show it to be weak.
 
 Give your answer in raw text without formatting or any headings or lists. Aim for 200 to 300 word answer.
 Do not give the position,fen or move history in the answer. Do not give general advice, stick to the options in this position.
 The student already has this game details and general advice..
 
-
-
-        `},self.mc.midd("secret").val())
+        `
+        gemCall({prompt:pro},self.mc.midd("secret").val())
         .then(data => {
+            var raw_answer = $('<div>').html(data).text()
             this.midd('notes_txt').val(this.midd('notes_txt').val()+`
 Hints by Gemini
 ---------------
-${$('<div>').html(data).text()}
+${raw_answer}
 
 ---------------
 `)
         self.updateComment()
+        self.check_answer(pro,raw_answer,fen)
     
         })
         .catch(error =>{
