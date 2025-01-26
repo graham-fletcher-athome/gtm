@@ -171,7 +171,7 @@ export class gem{
         var pro = `
 
 Answering as if you were are a chess coach.
-Give hints to help your student identify possible moves in the chess position in the FEN:
+Give hints based on the variations listed below to help your student identify possible moves in the chess position in the FEN:
 ${fen}
 
 The moves to reach this poition were:
@@ -185,15 +185,16 @@ Do not give hints where the continuations show it to be weak.
 
 Give your answer in raw text without formatting or any headings or lists. 
 Do not give the position,fen or move history in the answer. Do not give general advice, stick to the options in this position.
-The student already has this game details and general advice..
-`
 
+`
+/*
             pro = pro + `
     Your student an 11 year old with an ELO of 800. Write your answer in a style to support them.
     Keep the number of options to 2 or 3 and aim for an under 200 word answer.
     Make sure the best move is in the list.
 
             `
+*/
         gemCall({prompt:pro},self.mc.midd("secret").val())
         .then(data => {
             var raw_answer = $('<div>').html(data).text()
