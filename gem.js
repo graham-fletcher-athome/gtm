@@ -171,7 +171,9 @@ export class gem{
         var pro = `
 
 Answering as if you were are a chess coach.
-Give hints based on the variations listed below to help your student identify possible moves in the chess position in the FEN:
+Give hints based on the variations listed below. Try to explain the pros and cons of the better options.
+Try not to reveal which are the best. 
+
 ${fen}
 
 The moves to reach this poition were:
@@ -180,12 +182,10 @@ ${pre_moves}
 To help with your analysis here are some continuations:
 ${variations}
 
-Make sure you include strong continuations amongst your hints.
-Do not give hints where the continuations show it to be weak.
 
 Give your answer in raw text without formatting or any headings or lists. 
 Do not give the position,fen or move history in the answer. Do not give general advice, stick to the options in this position.
-
+Give your answer in a conversational style rather than a list of options.
 `
 /*
             pro = pro + `
