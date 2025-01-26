@@ -187,13 +187,20 @@ Give your answer in raw text without formatting or any headings or lists.
 Do not give the position,fen or move history in the answer. Do not give general advice, stick to the options in this position.
 Give your answer in a conversational style rather than a list of options.
 `
-/*
+
             pro = pro + `
     Your student an 11 year old with an ELO of 800. Write your answer in a style to support them.
     Keep the number of options to 2 or 3 and aim for an under 200 word answer.
     Make sure the best move is in the list.
 
             `
+
+/*
+pro = pro + `
+Your student an adult an ELO of 2000. Write your answer in a style to support them.
+make sure you consider the strategic impact of the choices.
+Make sure the best move is in the list.
+`
 */
         gemCall({prompt:pro},self.mc.midd("secret").val())
         .then(data => {
