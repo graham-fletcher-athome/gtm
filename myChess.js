@@ -175,6 +175,7 @@ export class myChess{
 
     analysisReturn(fen,ca)
     {
+        console.log(ca)
         
         for(var j = 0; j < self.moves.length; j++){
             if (self.moves[j].fen_before == fen)
