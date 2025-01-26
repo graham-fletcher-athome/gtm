@@ -185,6 +185,33 @@ export class myChess{
             if (self.moves[j].fen_after == fen)
             {
                 self.moves[j].eval_after = ca
+
+                //If the actual move isnt in the before analysis then add it
+               
+                var actual_move=self.moves[j].from+self.moves[j].to
+
+                if (self.moves[j].eval_before){
+                    var actual_move_found = false
+                    for (var i = 0; i <self.moves[j].eval_before.length; i++){
+
+                        if (actual_move == self.moves[j].eval_before[i].san)
+                            actual_move_found = true
+                    }
+                    if (actual_move_found == false){
+
+                        var am_anal = {
+                            depth: Number(ca[0].depth+1),
+                            eval : 100-((ca[0].eval)),
+                            san : actual_move,
+                            line: actual_move+" "+(ca[0].line),
+                            reval: ca[0].reval.split(" ")[0]+" "+String(-Number(ca[0].reval.split(" ")[1]))
+                        }
+                        
+                        self.moves[j].eval_before.push(am_anal)
+
+
+                    }
+                }
             }
 
         }
@@ -201,7 +228,7 @@ export class myChess{
                     '<div id="'+this.mid("title_site")+'"></div>'+
                     '<div id="'+this.mid("title_date")+'"></div>'+
                     '<hr>'+
-                    '<div id="'+this.mid("myChess_status")+'" style="height: 20px; font-size: 14px;"></div>'+
+                    '<div id="'+this.mid("myChess_status")+'" style="height: 30px; font-size: 14px;"></div>'+
                 '</div>'+
 
                 '<div id="'+this.mid("myBoard")+'" style="width: 400px" class="myChess_board"></div>'+
@@ -502,77 +529,75 @@ export class myChess{
     }
       
     score_move(move){
-        console.log("----")
+        
         var correct_move = this.moves[this.chess.history().length]
-        console.log(correct_move)
+        
         if ((move.from == correct_move.from) && ((move.to) == correct_move.to))
         {
             
-            self.score += 3
-            self.score_message = "Correct Move. Current Score "+String(self.score)
+            self.score += 6
+            self.score_message = "Correct Move. You got 6 points for this move. Current Score "+String(self.score)
         }
         else
         {
             var correct_score = null
             var actual_score = null
-            for (var x =0; x< 5;x++)
+            var best_score = -9999
+            var worst_score = 9999
+
+            for (var x =0; x< correct_move.eval_before.length;x++)
             {
 
                 if ((correct_move.eval_before[x] != null) && (correct_move.eval_before[x].san == move.from+move.to))
                     actual_score = correct_move.eval_before[x].eval
 
                 if ((correct_move.eval_before[x] != null) && (correct_move.eval_before[x].san == correct_move.from+correct_move.to))
-                {
                     correct_score = correct_move.eval_before[x].eval
-                }
 
-            }
-            if ((actual_score == null) || (actual_score < (correct_score -5)))
-            {
-                self.score -= 2
-                if (self.score < 0)
-                    self.score = 0
-                self.score_message = "Your move "+move.san+" was incorrect. Sorry you lost 2 points. Current Score "+String(self.score)
-                return
+                if (correct_move.eval_before[x].eval < worst_score)
+                    worst_score = correct_move.eval_before[x].eval 
+
+                if (correct_move.eval_before[x].eval > best_score)
+                    best_score = correct_move.eval_before[x].eval 
             }
 
-            if ((correct_score == null) || (actual_score >= (correct_score +5)))
-            {
-                self.score += 10
-                self.score_message = "Your move "+move.san+" was much better. Wow 10 points. Current Score "+String(self.score)
-                return
-            }
+            if (actual_score == null)
+                actual_score = worst_score - 5
 
-            if (actual_score >= correct_score +0.5)
-                {
-                    self.score += 5
-                    self.score_message = "Your move "+move.san+" was better than the masters move. You got 5 points. Current Score "+String(self.score)
-                    return
-                }
+            if (correct_score == null)
+                correct_score = worst_score - 5
 
-            if (actual_score >= correct_score )
-            {
-                self.score += 3
-                self.score_message = "Your move "+move.san+" was as good as the masters move. You got 3 points. Current Score "+String(self.score)
-                return
-            }
 
-            if (actual_score >= correct_score - 1 )
-            {
-                self.score += 2
-                self.score_message = "Your move "+move.san+" was as nearly as good as the masters move. You got 2 points. Current Score "+String(self.score)
-                return
-            }
 
-            if (actual_score >= correct_score - 3 )
-            {
-                self.score += 1
-                self.score_message = "Your move "+move.san+" was ok. You got 1 point. Current Score "+String(self.score)
-                return
-            }
+            var score_delta = actual_score - correct_score
+            var display_score = Math.round(score_delta)
 
-            self.score_message = "You didnt get any points, but you didnt go down either!. Current Score "+String(self.score)
-                return
+            if (display_score < 0)
+                self.score_message = "Your chances of winning were "+-display_score+" % worse than the actual move<br>"
+           
+            if (display_score > 0)
+                self.score_message = "Your chances of winning were "+display_score+" % better than the actual move<br>"
+        
+            if (display_score == 0)
+                self.score_message = "Your chances of winning are the same as the actual move<br>"
+           
+            var pts = 0
+            if (score_delta>=0)
+                pts = 4+((score_delta)*(score_delta))
+            if (score_delta<0)
+                pts = 4+(score_delta)
+
+            if (pts > 30)
+                pts = 30
+            if (pts < -2)
+                pts = -2
+
+            pts = (Math.floor(pts*10))/10
+            self.score += pts
+            self.score_message=self.score_message+("You scored "+String(pts)+" for this move. Your score is now "+self.score)
+            
+
+            
         }
     }
 
