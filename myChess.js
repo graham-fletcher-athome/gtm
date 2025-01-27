@@ -188,7 +188,7 @@ export class myChess{
                 self.moves[j].eval_after = ca
 
                 //If the actual move isnt in the before analysis then add it
-               
+                console.log("Analysis for move "+j+" returned")
                 var actual_move=self.moves[j].from+self.moves[j].to
 
                 if (self.moves[j].eval_before){
