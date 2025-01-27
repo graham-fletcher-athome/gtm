@@ -13,13 +13,10 @@ export function analyse(fen,cb) {
     return null
 }
 
-function clearAnalysisQueue(){
+export function clearAnalysisQueue(){
 
   /* Clears the analysis queue */
-
-  __stockfishWorker.postMessage(`stop`);
-  analyisQueue = []
-  analysisRunning = null
+  __analysisQueue = []
 }
 
 var __stockfishWorker = null

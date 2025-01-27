@@ -1,6 +1,6 @@
 import "https://cdnjs.cloudflare.com/ajax/libs/chessboard-js/1.0.0/chessboard-1.0.0.js"
 import {Chess} from "https://cdnjs.cloudflare.com/ajax/libs/chess.js/0.13.4/chess.min.js"
-import {analyse} from "./engine.js"
+import {analyse,clearAnalysisQueue} from "./engine.js"
 import {gem} from "./gem.js"
 
 var board
@@ -55,7 +55,7 @@ export class myChess{
         if (chess.load_pgn(pgn) != null)
         {
             this.orig_pgn = pgn
-            
+            clearAnalysisQueue()
             this.moves = chess.history({ verbose: true })
             var x = chess.header()
             var comments = chess.get_comments()
@@ -145,6 +145,7 @@ export class myChess{
             this.setMoveOnBoard(0)
             this.moveorrequest()
             this.gem.context(pgn)
+    
 
             return true
         }
@@ -175,9 +176,9 @@ export class myChess{
 
     analysisReturn(fen,ca)
     {
-        console.log(ca)
         
         for(var j = 0; j < self.moves.length; j++){
+            
             if (self.moves[j].fen_before == fen)
             {
                 self.moves[j].eval_before = ca
