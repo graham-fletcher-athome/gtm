@@ -154,7 +154,7 @@ export class gem{
 
                 var variation =  "" 
                 var moves = evl[l]["line"].split(" ")
-               for(var y = 0; y < moves.length; y++){
+               for(var y = 0; y < Math.min(moves.length,5); y++){
                     var m = chess.move(moves[y], { sloppy: true })
                     variation = variation+" "+m.san
                 }
@@ -192,7 +192,7 @@ Do not give the position,fen or move history in the answer. Do not give general 
 Give your answer in a conversational style rather than a list of options.
 
 Your student an 11 year old with an ELO of 800. Write your answer in a style to support them.
-Keep the number of options to 2 or 3 and aim for an under 200 word answer.
+Keep the number of options to 2 or 3 and aim for an under 300 word answer.
 Make sure the move with the higest evaluation is in the list. Do not reveal which one of the options you
 give is best.
 

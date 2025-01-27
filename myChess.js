@@ -537,7 +537,7 @@ export class myChess{
         {
             
             self.score += 6
-            self.score_message = "Correct Move. You got 6 points for this move. Current Score "+String(self.score)
+            self.score_message = "Correct Move. You got 6 points for this move. Current Score "+self.score.toFixed(1)
         }
         else
         {
@@ -593,9 +593,8 @@ export class myChess{
             if (pts < -2)
                 pts = -2
 
-            pts = (Math.floor(pts*10))/10
             self.score += pts
-            self.score_message=self.score_message+("You scored "+String(pts)+" for this move. Your score is now "+self.score)
+            self.score_message=self.score_message+("You scored "+pts.toFixed(1)+" for this move. Your score is now "+self.score.toFixed(1))
             
 
             
