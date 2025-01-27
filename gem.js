@@ -152,13 +152,17 @@ export class gem{
                     fen=chess.fen()
                 }
 
-                var variation = "[(%eval "+evl[l]["reval"]+")"
+                var variation =  "" 
                 var moves = evl[l]["line"].split(" ")
                for(var y = 0; y < moves.length; y++){
                     var m = chess.move(moves[y], { sloppy: true })
                     variation = variation+" "+m.san
                 }
-                variation = variation + "]"
+                variation = JSON.stringify({
+                    "evaluation":evl[l].stockfish_eval,
+                    "move":variation.split(" ")[1],
+                    "continuation":variation,
+                })
 
                 if (Math.random() > 0.5)
                     variations = variations+variation+"\n"
@@ -172,7 +176,7 @@ export class gem{
 
 Answering as if you were are a chess coach.
 Give hints based on the variations listed below. Try to explain the pros and cons of the better options.
-Try not to reveal which are the best. 
+
 
 ${fen}
 
@@ -186,22 +190,17 @@ ${variations}
 Give your answer in raw text without formatting or any headings or lists. 
 Do not give the position,fen or move history in the answer. Do not give general advice, stick to the options in this position.
 Give your answer in a conversational style rather than a list of options.
-`
 
-            pro = pro + `
-    Your student an 11 year old with an ELO of 800. Write your answer in a style to support them.
-    Keep the number of options to 2 or 3 and aim for an under 200 word answer.
-    Make sure the best move is in the list.
+Your student an 11 year old with an ELO of 800. Write your answer in a style to support them.
+Keep the number of options to 2 or 3 and aim for an under 200 word answer.
+Make sure the move with the higest evaluation is in the list. Do not reveal which one of the options you
+give is best.
 
             `
 
-/*
-pro = pro + `
-Your student an adult an ELO of 2000. Write your answer in a style to support them.
-make sure you consider the strategic impact of the choices.
-Make sure the best move is in the list.
-`
-*/
+
+
+
         gemCall({prompt:pro},self.mc.midd("secret").val())
         .then(data => {
             var raw_answer = $('<div>').html(data).text()

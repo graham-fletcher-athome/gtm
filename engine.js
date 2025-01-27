@@ -90,7 +90,8 @@ function __processMessages(event){
       eval : prob,
       san : m[5],
       line: m[5]+m[6],
-      reval: m[3]+" "+m[4]
+      reval: m[3]+" "+m[4],
+      stockfish_eval:x/100
     }
   }
 };
