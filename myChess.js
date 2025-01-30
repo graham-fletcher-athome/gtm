@@ -1,6 +1,6 @@
 import "https://cdnjs.cloudflare.com/ajax/libs/chessboard-js/1.0.0/chessboard-1.0.0.js"
 import {Chess} from "https://cdnjs.cloudflare.com/ajax/libs/chess.js/0.13.4/chess.min.js"
-import {analyse,clearAnalysisQueue} from "./engine.js"
+import {UCIengine} from "./engine.js"
 import {gem} from "./gem.js"
 
 var board
@@ -55,7 +55,7 @@ export class myChess{
         if (chess.load_pgn(pgn) != null)
         {
             this.orig_pgn = pgn
-            clearAnalysisQueue()
+            this.engine.clearAnalysisQueue()
             this.moves = chess.history({ verbose: true })
             var x = chess.header()
             var comments = chess.get_comments()
@@ -84,9 +84,12 @@ export class myChess{
                 this.moves[i].fen_after  = chess.fen()
                 this.moves[i].pgn_after = chess.pgn()
                 this.moves[i].eval_after = null
+                var sl = this
                 if ( i >=8 )
-                    analyse(this.moves[i].fen_after, this.analysisReturn)
-
+                {
+                    const ii =i
+                    this.engine.analyse(this.moves[i].fen_after).then((analysis)=>{console.log(ii); sl.analysisReturn(this.moves[ii].fen_after,analysis)})
+                }
                 for (var j = 0; j < comments.length; j++){
                     if (comments[j].fen == this.moves[i].fen_after)
                     {
@@ -399,7 +402,6 @@ export class myChess{
     }
 
     scheduleNextMove(){
-
         if (self.snm == false){
             if (self.chess.history().length < self.moves.length){
                 self.snm = true
@@ -413,8 +415,6 @@ export class myChess{
     }
 
     moveorrequest(){
-        
-
         if (self.chess.history().length == self.moves.length)
         {
             self.setStatus("Game is over")
@@ -478,6 +478,7 @@ export class myChess{
         this.snm = false
         self.score = 0
         self.score_message = ""
+        this.engine = new UCIengine("./stockfish-16.1-single.js")
         
 
     }
