@@ -112,6 +112,7 @@ export class gem{
         var fen = ""
         var chess = new Chess()
         var all_prom = []
+        var bestEval = -9999
 
         if (chess.load_pgn(pgn)){
             var history = chess.history()
@@ -150,7 +151,9 @@ export class gem{
                 //Get the stockfish 11 description
                 all_prom.push(self.engine.position_descibe(chess.fen()))
 
-                
+                if (evl[l].stockfish_eval > bestEval)
+                    bestEval = evl[l].stockfish_eval
+
                 variations.push({
                     "evaluation":evl[l].stockfish_eval,
                     "move":variation.split(" ")[1],
@@ -159,6 +162,8 @@ export class gem{
                 })
 
             }
+
+            console.log("Best eval",bestEval)
 
             Promise.allSettled(all_prom).then((descriptions)=>{
                 
@@ -170,22 +175,33 @@ export class gem{
                 for(var x = 0; x < variations.length; x++)
                 {
                     variations[x]["Comments"]=self.comments(diff_prom[variations[x].fen_at_end])
-
                 }
                 variations.sort(() => Math.random() - 0.5);
-                
+
+                var vars = []
+                for(var x = 0; x < variations.length; x++){
+                    console.log(variations[x])
+                    if (variations[x].evaluation > bestEval-1)
+                        vars.push(variations[x])
+                }
+
+                var possible_moves = ""
+                for(var x = 0; x < vars.length; x++){
+                    possible_moves += vars[x].move+" "
+                }
                 var pro = `
 
-Answering as if you were are a chess coach.
-Give hints based on the variations listed below. Try to explain the pros and cons of the better options.
-
+Answering as if you were are a chess coach.  Given the folloing position:
 ${fen}
 
 The moves to reach this poition were:
 ${pre_moves}
 
-To help with your analysis here are some continuations:
-${JSON.stringify(variations)}
+Try to explain the pros and cons of the the following possible moves from this position ${possible_moves}.
+Do not list any other first moves in your suggestions. 
+
+To help with your analysis here is analysis of continuations after the moves:
+${JSON.stringify(vars)}
 
 
 Give your answer in raw text without formatting or any headings or lists. 
@@ -195,8 +211,8 @@ Give your answer in a conversational style rather than a list of options.
 Your student has an ELO of ${self.mc.midd("elo").val()}. Write your answer in a style and length to support them.
 Below 1000 elo keep your answers to a few hundred words and do not include lines. At 1400 elo you may include short lines of 2 or 3 moves.
 At 2000 elo +  you may include longer lines.
-Make sure the move with the higest evaluation is in the list. Do not reveal which one of the options you
-give is best. Randomise the order of your hints.
+Make sure the move with the higest evaluation is in the list. Do not list any option with an eval more than 1.0 worse than the best option.
+Do not reveal which one of the options you give is best. Randomise the order of your hints.
 
             `
 
