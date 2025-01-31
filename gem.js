@@ -1,5 +1,6 @@
 import showdown from 'https://cdn.jsdelivr.net/npm/showdown@2.1.0/+esm'
 import {Chess} from "https://cdnjs.cloudflare.com/ajax/libs/chess.js/0.13.4/chess.min.js"
+import { UCIengine } from './engine.js'
 var cvt = new showdown.Converter()
 
 export class gem{
@@ -11,6 +12,7 @@ export class gem{
         this.html()
         this.move=null
         this.mc=mc
+        this.engine=new UCIengine("./stockfish.js")
         
     }
 
@@ -74,7 +76,6 @@ export class gem{
     
 
     context(pgn){
-        
         var self=this
         self.midd("context").html("");
         self.showNotes()
@@ -102,81 +103,81 @@ export class gem{
             self.midd("context").html("");
     }
 
-    check_answer(prompt,raw_answer,fen){
-        var self=this
-        var new_prompt = `
-        In the following anaysis of a chess position made by an unreliable source. 
-
-        List all peice locations, stated or implied, for the current position only. Use the form "Peice is on square"
-        List all the candidate moves discussed. Use the form SAN is a candidate move.
-
-        The analysis was done from white's perspective
-
-        Give your answer in plain text 
-        
-
-        analysis:
-        ${raw_answer}
-
-        `
-        gemCall({prompt:new_prompt},self.mc.midd("secret").val())
-        .then(data => {
-            console.log(data)
-    
-        })
-        .catch(error =>{
-            console.error("Error:", error);
-        })
-    }
-
     position_feedback(pgn, movenumber, evl){
 
         /*Get the feedback from gemini on a position*/
         var self = this
-        var variations = ""
+        var variations = []
         var pre_moves = ""
         var fen = ""
         var chess = new Chess()
+        var all_prom = []
+
         if (chess.load_pgn(pgn)){
             var history = chess.history()
+
+            
+            console.log(evl)
 
             for(var l = 0; l < evl.length; l++)
             {
                 chess.reset()
                 for(var x = 0; x < movenumber; x++)
                     chess.move(history[x])
+                
 
                 if (pre_moves == "")
                 {
+                    console.log(2)
+                    //All the details about the base position
                     pre_moves = chess.pgn()
                     fen=chess.fen()
+                    console.log(self)
+                    console.log(self.engine)
+                    var p = self.engine.position_descibe(fen)
+                    console.log(p)
+                    all_prom.push(p)
                 }
 
                 var variation =  "" 
                 var moves = evl[l]["line"].split(" ")
-               for(var y = 0; y < Math.min(moves.length,5); y++){
+                for(var y = 0; y < moves.length; y++){
                     var m = chess.move(moves[y], { sloppy: true })
-                    variation = variation+" "+m.san
+                    if (y <=5)
+                        variation = variation+" "+m.san
                 }
-                variation = JSON.stringify({
+
+                //Get the stockfish 11 description
+                all_prom.push(self.engine.position_descibe(chess.fen()))
+
+                
+                variations.push({
                     "evaluation":evl[l].stockfish_eval,
                     "move":variation.split(" ")[1],
                     "continuation":variation,
+                    "fen_at_end":chess.fen()
                 })
 
-                if (Math.random() > 0.5)
-                    variations = variations+variation+"\n"
-                else
-                    variations = variation+"\n"+variations
-
             }
-        }
 
-        var pro = `
+            Promise.allSettled(all_prom).then((descriptions)=>{
+                
+
+                var diff_prom = {}
+                for(var x = 1; x < descriptions.length; x++)
+                    diff_prom[descriptions[x].value.fen] = UCIengine.desc_diff(descriptions[0].value.desc,descriptions[x].value.desc)
+
+                for(var x = 0; x < variations.length; x++)
+                {
+                    variations[x]["Comments"]=self.comments(diff_prom[variations[x].fen_at_end])
+
+                }
+                variations.sort(() => Math.random() - 0.5);
+                
+                var pro = `
 
 Answering as if you were are a chess coach.
 Give hints based on the variations listed below. Try to explain the pros and cons of the better options.
-
 
 ${fen}
 
@@ -184,22 +185,23 @@ The moves to reach this poition were:
 ${pre_moves}
 
 To help with your analysis here are some continuations:
-${variations}
+${JSON.stringify(variations)}
 
 
 Give your answer in raw text without formatting or any headings or lists. 
 Do not give the position,fen or move history in the answer. Do not give general advice, stick to the options in this position.
-Give your answer in a conversational style rather than a list of options.
+Give your answer in a conversational style rather than a list of options. 
 
-Your student an 11 year old with an ELO of 800. Write your answer in a style to support them.
-Keep the number of options to 2 or 3 and aim for an under 300 word answer.
+Your student has an ELO of ${self.mc.midd("elo").val()}. Write your answer in a style and length to support them.
+Below 1000 elo keep your answers to a few hundred words and do not include lines. At 1400 elo you may include short lines of 2 or 3 moves.
+At 2000 elo +  you may include longer lines.
 Make sure the move with the higest evaluation is in the list. Do not reveal which one of the options you
-give is best.
+give is best. Randomise the order of your hints.
 
             `
 
 
-
+                console.log(pro)
 
         gemCall({prompt:pro},self.mc.midd("secret").val())
         .then(data => {
@@ -218,17 +220,39 @@ ${raw_answer}
         .catch(error =>{
             console.error("Error:", error);
         })
+            })
+        }
+
+        
     }
 
 
-    
+    comments(diff){
+        console.log(diff)
+        const me = (this.mc.moveOnBoard % 2 == 0)?"white":"black"
+        const them = (this.mc.moveOnBoard % 2 == 0)?"black":"white"
+        const mul = (this.mc.moveOnBoard % 2 == 0)?1:-1
+        var res = []
+        res.push( "My king safety changes by "+diff["King safety"][me]+".")
+        res.push( "Their kings safety changes by "+diff["King safety"][them]+".")
+        res.push( "My Initiative changes by "+diff["Initiative"].total*mul+".")
+        res.push( "Their Initiative changes by "+-(diff["Initiative"].total*mul)+".")
+        res.push( "My space changes by "+diff["Space"][me]+".")
+        res.push( "Their space changes by "+diff["Space"][them]+".")
+        res.push( "My mobility changes by "+diff["Mobility"][me]+".")
+        res.push( "Their mobility changes by "+diff["Mobility"][them]+".")
+        res.push( "My passed changes by "+diff["Passed"][me]+".")
+        res.push( "Their passed changes by "+diff["Passed"][them]+".")
+        res.push( "My pawn structure changes by "+diff["Pawns"][me]+".")
+        res.push( "Their pawn structure changes by "+diff["Pawns"][them]+".")
+        return res
+    }
 
 
 
     
 }
 async function gemCall(parameters,secret) {
-    console.log("sectret is",secret)
     const cloudFunctionUrl = 'https://europe-west2-bipuk-gpf-dev.cloudfunctions.net/gtm-lypu'; // Replace with your actual URL
     parameters['secret'] = secret
     try {

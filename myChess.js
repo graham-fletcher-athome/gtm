@@ -88,7 +88,7 @@ export class myChess{
                 if ( i >=8 )
                 {
                     const ii =i
-                    this.engine.analyse(this.moves[i].fen_after).then((analysis)=>{console.log(ii); sl.analysisReturn(this.moves[ii].fen_after,analysis)})
+                    this.engine.analyse(this.moves[i].fen_after).then((analysis)=>{sl.analysisReturn(this.moves[ii].fen_after,analysis)})
                 }
                 for (var j = 0; j < comments.length; j++){
                     if (comments[j].fen == this.moves[i].fen_after)
@@ -192,7 +192,6 @@ export class myChess{
                 self.moves[j].eval_after = ca
 
                 //If the actual move isnt in the before analysis then add it
-                console.log("Analysis for move "+j+" returned")
                 var actual_move=self.moves[j].from+self.moves[j].to
 
                 if (self.moves[j].eval_before){
@@ -262,7 +261,8 @@ export class myChess{
                         '<tr> <th colspan="2" align="center">Copy/Paste PGN file here</th></tr>'+
                         '<tr> <th colspan="2" align="center" id = "modalMessage"></th> </tr>'+
                         '<tr> <td colspan="2"> <textarea name="newPGNtext" id="'+this.mid("newPgnText")+'" cols="40" rows="5"></textarea> </td> </tr>'+
-                        '<tr> <td colspan="2"> <input type="text" id ="'+this.mid("secret")+'"></td></tr>'+
+                        '<tr> <td colspan="2"> Secret:  <input type="text" id ="'+this.mid("secret")+'"></td></tr>'+
+                        '<tr> <td colspan="2"> My ELO is: <input type="text" id ="'+this.mid("elo")+'"></td></tr>'+
                         '<tr> <td colspan="2"> <div id ="'+this.mid("dlg_items")+'" style="font-size: 10px" ></div></tr>'+
                         '<tr> <td align="center" style="width: 50%"> <button id="'+this.mid("dlg_load")+'" style="width: 90%" >Start</button></td>'+
                              '<td align="center" style="width: 50%"> <button id="'+this.mid("dlg_close")+'" style="width: 90%">Close</button></td></tr>'+
