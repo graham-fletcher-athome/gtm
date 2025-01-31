@@ -106,7 +106,7 @@ export class UCIengine{
             self.__currentCB=x['cb']
             self.__stockfishWorker.postMessage(`position fen `+ self.__analysisRunning);
             self.__stockfishWorker.postMessage(`setoption name MultiPV value 5`)
-            self.__stockfishWorker.postMessage("go depth 5")
+            self.__stockfishWorker.postMessage("go depth 20")
         }
       }
       else
