@@ -68,7 +68,7 @@ export class gem{
 
     secret_update(event){
         this.key = midd("key").val()
-        console.log(this.key)
+
     }
 
     
@@ -113,12 +113,13 @@ export class gem{
         var chess = new Chess()
         var all_prom = []
         var bestEval = -9999
+        var sndbest = -9999
 
         if (chess.load_pgn(pgn)){
             var history = chess.history()
 
             
-            console.log(evl)
+  
 
             for(var l = 0; l < evl.length; l++)
             {
@@ -129,14 +130,12 @@ export class gem{
 
                 if (pre_moves == "")
                 {
-                    console.log(2)
                     //All the details about the base position
                     pre_moves = chess.pgn()
                     fen=chess.fen()
-                    console.log(self)
-                    console.log(self.engine)
+
                     var p = self.engine.position_descibe(fen)
-                    console.log(p)
+
                     all_prom.push(p)
                 }
 
@@ -145,14 +144,18 @@ export class gem{
                 for(var y = 0; y < moves.length; y++){
                     var m = chess.move(moves[y], { sloppy: true })
                     if (y <=5)
-                        variation = variation+" "+m.san
+                        variation = gem.getvariation(pre_moves,chess.pgn())
                 }
 
                 //Get the stockfish 11 description
                 all_prom.push(self.engine.position_descibe(chess.fen()))
 
-                if (evl[l].stockfish_eval > bestEval)
+                if (evl[l].stockfish_eval > bestEval){
+                    sndbest = bestEval
                     bestEval = evl[l].stockfish_eval
+                } else if (evl[l].stockfish_eval > sndbest) 
+                    sndbest = evl[l].stockfish_eval
+                
 
                 variations.push({
                     "evaluation":evl[l].stockfish_eval,
@@ -163,61 +166,71 @@ export class gem{
 
             }
 
-            console.log("Best eval",bestEval)
+            
+
+            var evallmt = Math.min(sndbest-0.01 , bestEval-1.0)
+
 
             Promise.allSettled(all_prom).then((descriptions)=>{
-                
+
 
                 var diff_prom = {}
                 for(var x = 1; x < descriptions.length; x++)
+                {
+
+                
                     diff_prom[descriptions[x].value.fen] = UCIengine.desc_diff(descriptions[0].value.desc,descriptions[x].value.desc)
+                }
 
                 for(var x = 0; x < variations.length; x++)
                 {
                     variations[x]["Comments"]=self.comments(diff_prom[variations[x].fen_at_end])
                 }
-                variations.sort(() => Math.random() - 0.5);
+                
 
                 var vars = []
-                for(var x = 0; x < variations.length; x++){
-                    console.log(variations[x])
-                    if (variations[x].evaluation > bestEval-1)
-                        vars.push(variations[x])
+                for(var x = 0; x < Math.max(2,Math.min(variations.length,Math.floor((self.mc.midd("elo").val()-400)/400)+2)); x++){
+                    if (variations[x].evaluation > evallmt)
+                        vars.push({"move": variations[x].move,
+                                   "continuation": variations[x].continuation,
+                                   "comments":variations[x].Comments,
+                                   "evaluation":variations[x].evaluation
+                        })
                 }
+
+                vars.sort(() => Math.random() - 0.5);
 
                 var possible_moves = ""
                 for(var x = 0; x < vars.length; x++){
                     possible_moves += vars[x].move+" "
                 }
+
                 var pro = `
 
-Answering as if you were are a chess coach.  Given the folloing position:
-${fen}
 
-The moves to reach this poition were:
+
+Given the chess position after the moves:
 ${pre_moves}
 
-Try to explain the pros and cons of the the following possible moves from this position ${possible_moves}.
-Do not list any other first moves in your suggestions. 
+Give any opening or end game theory relivant to this position.
 
-To help with your analysis here is analysis of continuations after the moves:
-${JSON.stringify(vars)}
+The following statements explain change between the starting position and the end position of some variations. 
+Reword the comments into a converstaional style. The units are in pawns. Assume your student 
+understands the terms. Only discuss the more important canhes in each variation.
 
+${JSON.stringify(vars,null,2)}
 
 Give your answer in raw text without formatting or any headings or lists. 
-Do not give the position,fen or move history in the answer. Do not give general advice, stick to the options in this position.
-Give your answer in a conversational style rather than a list of options. 
+The student will not have acces to the comments directly. 
+Say "black has more space" rather than the "computer analysis shows" or "the comments say that black has more space".
 
-Your student has an ELO of ${self.mc.midd("elo").val()}. Write your answer in a style and length to support them.
-Below 1000 elo keep your answers to a few hundred words and do not include lines. At 1400 elo you may include short lines of 2 or 3 moves.
-At 2000 elo +  you may include longer lines.
-Make sure the move with the higest evaluation is in the list. Do not list any option with an eval more than 1.0 worse than the best option.
-Do not reveal which one of the options you give is best. Randomise the order of your hints.
+Your student has an ELO of ${self.mc.midd("elo").val()}. Write your answer in a 
+style to support them. Aim for an answer length of ${Math.min(100+(self.mc.midd("elo").val()/10),1000)} words.
 
             `
 
 
-                console.log(pro)
+   
 
         gemCall({prompt:pro},self.mc.midd("secret").val())
         .then(data => {
@@ -244,27 +257,38 @@ ${raw_answer}
 
 
     comments(diff){
-        console.log(diff)
         const me = (this.mc.moveOnBoard % 2 == 0)?"white":"black"
         const them = (this.mc.moveOnBoard % 2 == 0)?"black":"white"
-        const mul = (this.mc.moveOnBoard % 2 == 0)?1:-1
         var res = []
-        res.push( "My king safety changes by "+diff["King safety"][me]+".")
-        res.push( "Their kings safety changes by "+diff["King safety"][them]+".")
-        res.push( "My Initiative changes by "+diff["Initiative"].total*mul+".")
-        res.push( "Their Initiative changes by "+-(diff["Initiative"].total*mul)+".")
-        res.push( "My space changes by "+diff["Space"][me]+".")
-        res.push( "Their space changes by "+diff["Space"][them]+".")
-        res.push( "My mobility changes by "+diff["Mobility"][me]+".")
-        res.push( "Their mobility changes by "+diff["Mobility"][them]+".")
-        res.push( "My passed changes by "+diff["Passed"][me]+".")
-        res.push( "Their passed changes by "+diff["Passed"][them]+".")
-        res.push( "My pawn structure changes by "+diff["Pawns"][me]+".")
-        res.push( "Their pawn structure changes by "+diff["Pawns"][them]+".")
+        for (const [key, value] of Object.entries(diff)){
+            if (me in value){
+                if (Math.abs(value[me])>0.3)
+                    res.push(`My ${key} has changed by ${value[me]} between the start and end of the variation.`)
+                if (Math.abs(value[them])>0.3)
+                    res.push(`Their ${key} has changed by ${value[them]} between the start and end of the variation.`)
+            }
+            else
+            {
+                if (Math.abs(value.total)>0.5)
+                    if (value.total*(me=="white"?1:-1) >0 )
+                        res.push(`I gain ${value.total} of ${key} between the start and end of the variation.`)
+                    else
+                        res.push(`I lose ${value.total*(me=="white"?-1:1)} of ${key} between the start and end of the variation.`)
+                else
+                res.push(`${key} does not change.`)
+                
+            }
+        }
         return res
     }
 
 
+    static getvariation(basepgn,varpgn){
+        if (basepgn.length > 0)
+            return varpgn.slice(basepgn.length+1)
+        else
+            return varpgn
+    }
 
     
 }

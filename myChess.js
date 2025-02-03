@@ -275,12 +275,12 @@ export class myChess{
         this.gem=new gem(this.mid("mygem"),this)
 
         this.midd("feedbackButton").on("click",(event) =>{
-            console.log("p")
+
             var p = self.moveOnBoard-1
-            console.log(p)
+
             if (p >=0)
             {
-                console.log(self.moves[p])
+
                 if (self.moves[p].eval_after != null)
                     self.gem.position_feedback(self.orig_pgn,self.moveOnBoard,self.moves[p].eval_after)
             }
@@ -367,7 +367,7 @@ export class myChess{
         });
 
         
-        console.log($("."+this.mid("item_dlg_class")))
+        
     }
 
     close_pgn_dlg(){

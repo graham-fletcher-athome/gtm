@@ -23,7 +23,7 @@ export class UCIengine{
   position_descibe(fen){
     var self=this
     var resolver
-    console.log("desc................")
+
     /* Returns the description for a fen if it exists or adds it to the analysis queue if it doesnt*/
 
     var prom = new Promise(function(resolve, reject) {
@@ -139,7 +139,9 @@ export class UCIengine{
         eval : prob,
         san : m[5],
         line: m[5]+m[6],
+        cont: m[6],
         reval: m[3]+" "+m[4],
+
         stockfish_eval:x/100
       }
     }
@@ -147,11 +149,11 @@ export class UCIengine{
     if (message.match("^Total evaluation.*$") !== null)
     {
       processed = true
-      self.__savedDesc[self.__analysisRunning] = self.__description
-      self.__currentCB.resolve({
+      self.__savedDesc[self.__analysisRunning] = {
         "fen":self.__analysisRunning,
         "desc":UCIengine.extractfromDesc(self.__description,self.__analysisRunning)
-      })
+      }
+      self.__currentCB.resolve(self.__savedDesc[self.__analysisRunning])
       self.__description = ""
       self.__analysisRunning = null
       self.__nextAnalysis()
@@ -237,7 +239,7 @@ export class UCIengine{
   }
 
   static desc_diff(base,after){
-
+  
     var res = {}
     for (const [key, value] of Object.entries(base)) {
       res[key] = {}
