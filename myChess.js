@@ -2,7 +2,7 @@ import "https://cdnjs.cloudflare.com/ajax/libs/chessboard-js/1.0.0/chessboard-1.
 import {Chess} from "https://cdnjs.cloudflare.com/ajax/libs/chess.js/0.13.4/chess.min.js"
 import {UCIengine} from "./engine.js"
 import {gem} from "./gem.js"
-
+import {evalFEN,eval_vector,FEN2Messages} from "./SFeval.js"
 var board
 
 export class myChess{
@@ -54,6 +54,8 @@ export class myChess{
         this.gem.secret = secret
         if (chess.load_pgn(pgn) != null)
         {
+            this.score = 0
+            this.score_message = ""
             this.orig_pgn = pgn
             this.engine.clearAnalysisQueue()
             this.moves = chess.history({ verbose: true })
@@ -80,15 +82,27 @@ export class myChess{
                 this.moves[i].fen_before = chess.fen()
                 this.moves[i].pgn_before = chess.pgn()
                 this.moves[i].eval_before = null
-                chess.move(this.moves[i])
-                this.moves[i].fen_after  = chess.fen()
-                this.moves[i].pgn_after = chess.pgn()
                 this.moves[i].eval_after = null
+                this.moves[i].description_before = FEN2Messages(chess.fen())
+                if (i > 0){
+                    this.moves[i-1].description_after  = this.moves[i].description_before
+                }
+                this.moves[i].description_before = FEN2Messages(chess.fen())
+                chess.move(this.moves[i])
+                this.moves[i].fen_after = chess.fen()
+                this.moves[i].pgn_after = chess.pgn()
+                if (i == this.moves.length -1 ){
+
+                    this.moves[i].description_after = FEN2Messages(chess.fen())
+                }
+                
+
                 var sl = this
                 if ( i >=8 )
                 {
                     const ii =i
                     this.engine.analyse(this.moves[i].fen_after).then((analysis)=>{sl.analysisReturn(this.moves[ii].fen_after,analysis)})
+
                 }
                 for (var j = 0; j < comments.length; j++){
                     if (comments[j].fen == this.moves[i].fen_after)
@@ -145,6 +159,7 @@ export class myChess{
             this.midd('white_details').html(pl+"<br>"+plElo)
             this.header = x
             this.chess = chess
+            this.setStatus("New PGN loaded")
             this.setMoveOnBoard(0)
             this.moveorrequest()
             this.gem.context(pgn)
@@ -162,18 +177,27 @@ export class myChess{
         
         if (x > this.chess.history().length)
             x = this.chess.history().length
+
+        var fen
+        var comments="Your notes\n"
+
         if (x==0)
         {
-            this.board.position(this.moves[x].fen_before)
-            this.gem.setComment("Your notes")
+            fen=this.moves[x].fen_before
             
         }
         else
         {
-            this.board.position(this.moves[x-1].fen_after)
-            this.gem.setComment(this.moves[x-1].comment)
+            fen = this.moves[x-1].fen_after
+            if (this.moves[x-1].comment != null)
+                comments += this.moves[x-1].comment
             
+                        
         }
+        
+
+        this.board.position(fen)
+        this.gem.setComment(comments)
         this.moveOnBoard = x
     }
 
@@ -282,7 +306,7 @@ export class myChess{
             {
 
                 if (self.moves[p].eval_after != null)
-                    self.gem.position_feedback(self.orig_pgn,self.moveOnBoard,self.moves[p].eval_after)
+                    self.gem.position_feedback(self.moves[p],self.moveOnBoard % 2 == 0 ? "white" : "black")
             }
         })
         this.midd("flip_control").on("click",(event) => {
@@ -381,7 +405,7 @@ export class myChess{
     }
 
     setStatus(x){
-        self.midd("myChess_status").html(x+"<br>"+self.score_message)
+        this.midd("myChess_status").html(x+"<br>"+this.score_message)
     }
 
     flip_board(){
@@ -398,13 +422,14 @@ export class myChess{
             this.midd("white_details").detach().appendTo("#"+this.mid("top_details"));
         }
 
-        self.moveorrequest()
+        this.moveorrequest()
     }
 
     scheduleNextMove(){
-        if (self.snm == false){
-            if (self.chess.history().length < self.moves.length){
-                self.snm = true
+        self=this
+        if (this.snm == false){
+            if (this.chess.history().length < this.moves.length){
+                this.snm = true
                 setTimeout(()=>{
                     self.snm = false
                     self.makeNextMove()
