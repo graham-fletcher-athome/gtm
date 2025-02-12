@@ -106,8 +106,8 @@ export class gem{
 
         //Get the feedback from gemini on a position
         var self = this
-        var qb = quiet_point(move.eval_before)
-        var qa = quiet_point(move.eval_after)
+        var qb = quiet_point(move.eval_before[0])
+        var qa = quiet_point(move.eval_after[0])
         qa.ql.unshift(move.san)
 
         var diff = diff_descriptions(eval_description(qb.qf), eval_description(qa.qf))
@@ -168,7 +168,68 @@ ${raw_answer}
             console.error("Error:", error);
         })
     }
+
+
+
+    position_hint(move,colour){
+
+        //Get the feedback from gemini on a position
+        var self = this
+        
+        var base_desc = eval_description(move.fen_after)
+        for( var x of move.eval_after)
+            if (!x.quiet)
+            {
+                x.quiet = quiet_point(x)
+                x.diff_desc = diff_descriptions(base_desc, eval_description(x.quiet.qf))
+            }
+
+        var pro = `
+
+        Below are a number of possible moves from a chess position. For each one the expected outcome
+        in evaluation is given for both white and black. Descibe the differences bwteen the possible moves.
+
+        Give your answer in a conversational style as if you were a chess coah giving hints to a student to
+        help them select between the options.
+
+        Do not refer to the evaluation terms or to stockfish.
+
+        Aim for a 250 word answer.
+
+        The FEN of the base position is ${move.fen_after}
+
+        The last move made was ${move.san}.
+
+        `
+        for (var x of move.eval_after)
+            pro += `
+        move: ${x.quiet.ql[0]}
+        expected continuation: ${x.quiet.ql}
+        expected changes for white : ${diff_descriptions_to_text(x.diff_desc.white)}
+        expected changes for black : ${diff_descriptions_to_text(x.diff_desc.white)}
+
+
+        `
+
+        gemCall({prompt:pro},self.mc.midd("secret").val())
+        .then(data => {
+            var raw_answer = $('<div>').html(data).text()
+            this.midd('notes_txt').val(this.midd('notes_txt').val()+`
+
+---------------
+${raw_answer}
+
+---------------
+`)
+        self.updateComment()
+        
+        })
+        .catch(error =>{
+            console.error("Error:", error);
+        })
+    }
 }
+
 
 
     

@@ -142,17 +142,16 @@ export class UCIengine{
 export function quiet_point(evl){
 
   //Follow each line of the analysis and find the next quiet position
-  for (var x = 0; x< evl.length; x++)
-    {
-      var desc_before  = eval_description(evl[x].fen)
+
+      var desc_before  = eval_description(evl.fen)
       var desc_after = desc_before
       var quiet_line = []    
       var quiet_fens = []
       var quiet_log = []
 
-        var line = evl[x]
+        var line = evl
         var cb = new Chess()
-        cb.load(evl[x].fen)
+        cb.load(evl.fen)
         var quiet = 0
         
         for(var move of line.line.split(" ")){
@@ -181,9 +180,6 @@ export function quiet_point(evl){
         }
 
         return({"ql":quiet_line,"qf":quiet_fens[quiet_line.length-1]})
-      
-
-    }
 
 }
 

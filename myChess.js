@@ -268,6 +268,7 @@ export class myChess{
                     '<button id="'+this.mid("reportButton")+'" >Report</button>'+
                     '<button id="'+this.mid("notesButton")+'" >Notes</button>'+
                     '<button id="'+this.mid("feedbackButton")+'" >Computer Analysis</button>'+
+                    '<button id="'+this.mid("hintButton")+'" >Hint</button>'+
                 '</div>'+
                 '<div id="'+this.mid("mygem")+'"class="myChess_gem"> '+
                 '</div>'+
@@ -295,6 +296,12 @@ export class myChess{
             if (self.moveOnBoard > 0)
             {
                  self.gem.position_feedback(self.moves[self.moveOnBoard-1],self.moveOnBoard % 2 == 0 ? "white" : "black")
+            }
+        })
+        this.midd("hintButton").on("click",(event) =>{
+            if (self.moveOnBoard > 0)
+            {
+                 self.gem.position_hint(self.moves[self.moveOnBoard-1],self.moveOnBoard % 2 == 0 ? "white" : "black")
             }
         })
         this.midd("flip_control").on("click",(event) => {
