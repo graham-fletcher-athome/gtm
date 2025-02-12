@@ -75,20 +75,6 @@ function sum(pos, func, param) {
   for (var x = 0; x < 8; x++) for(var y = 0; y < 8; y++) {
     const result = func(pos, {x:x, y:y}, param);
     sum += result
-    if (result != 0){
-      
-      if(m)
-        
-         
-          store_message1({"colour":(pos.i  ? "black" : "white"),
-            "peice":peice(pos,x,y),
-            "square":("abcdefgh"[x]+String(pos.i ? y+1: 8-y)),
-            "function":m[1],
-            "score":result,
-            "pos":pos})
-
-        
-    }
   }
   if(m){
     store_message1({"colour":(pos.i  ? "black" : "white"),
@@ -104,15 +90,50 @@ function sum(pos, func, param) {
 }
 
 
-export function eval_vector(fen){
+export function eval_description(fen){
   var pos = parseFEN(fen)
-  var mgl = $balance_evaluation($middle_game_evaluation_list(pos),[],pos)
-  var egl = $balance_evaluation([],$end_game_evaluation_list(pos),pos)
-  var result =  mgl.concat(egl)
-  if (!pos.w)
-    for(var x = 0; x <  result.length; x++)
-      result[x] = -result[x]
-  
+
+  var result = {}
+  var white  = $balance_evaluation($middle_game_evaluation_list_one_side(pos),
+                                   $end_game_evaluation_list_one_side(pos),pos)
+  result.white = {"piece_value": white[0],
+          "psqt": white[1],
+          "imbalance": white[2],
+          "pawns": white[3],
+          "pieces": white[4],
+          "mobility": white[5],
+          "threats" : white[6],
+          "passed" : white[7],
+          "space" : white[8],
+          "king" :white[9],
+          "isolated_pawns" :white[10],
+          "backward_pawns" :white[11],
+          "doubled_pawns" :white[12],
+          "connected_pawns" :white[13],
+          "doubled_and_isolated_pawns": white[14]
+  }
+
+  pos = colorflip(pos)
+  var black = $balance_evaluation($middle_game_evaluation_list_one_side(pos),
+                                  $end_game_evaluation_list_one_side(pos),pos)
+
+  result.black = {"piece_value": black[0],
+          "psqt": black[1],
+          "imbalance": black[2],
+          "pawns": black[3],
+          "pieces": black[4],
+          "mobility": black[5],
+          "threats" : black[6],
+          "passed" : black[7],
+          "space" : black[8],
+          "king" :black[9],
+          "isolated_pawns" :black[10],
+          "backward_pawns" :black[11],
+          "doubled_pawns" :black[12],
+          "connected_pawns" :black[13],
+          "doubled_and_isolated_pawns": black[14]
+  }
+
   return result
 }
 
@@ -135,22 +156,16 @@ export function messages_on(){
 }
 export function messages_off(){
   var x = get_messages()
-  all_messages={}
+  all_messages={"black":{},"white":{}}
   allow_messages = false
   return x
 }
 
-function store_message(str,inverted,replace){
-}
-
-var all_messages={}
+var all_messages={"black":{},"white":{}}
 function store_message1(p){
   if (!allow_messages)
     return
-
-  if (p.score == 0)
-    return
-
+  var mul = 1
   var key = null
   if (p.square){
     if (p.peice != "-")
@@ -160,18 +175,22 @@ function store_message1(p){
       if (m && m[2]=="my")
         key = m[1]+m[3]
       if (m && m[2]=="th")
+      {
         key = (m[1]=="white"?"black":"white")+m[3]
+        mul=-1
+      }
     }
   }
   else
     key = p.colour
-
-  
-
   if (key)
   {
-    if (!(key in all_messages)){
-      all_messages[key] = {}
+    if (!(key in all_messages[p.colour])){
+      all_messages[p.colour][key] = {
+        peice:p.peice,
+        colour:p.colour,
+        square:p.square
+      }
     }
 
     var func = p.function
@@ -185,63 +204,41 @@ function store_message1(p){
       phase = "eg"
     }
 
-    if (!(func in all_messages[key]))
-      all_messages[key][func]={pos:p.pos}
+    if (!(func in all_messages[p.colour][key]))
+      all_messages[p.colour][key][func]={pos:p.pos}
 
-    if (!(phase in all_messages[key][func]))
-      all_messages[key][func][phase] = 0
+    if (!(phase in all_messages[p.colour][key][func]))
+      all_messages[p.colour][key][func][phase] = 0
 
-    all_messages[key][func][phase] = p.score
+    all_messages[p.colour][key][func][phase] = p.score
   }
 
 }
 
-export function deltaMessages(m1,m2){
-
-  console.log("delta",m1,m2)
-  var result = {}
-  var keys1 = Object.keys(m1)
-  var keys2 = Object.keys(m2)
-  var keys = []
-
-  for (const x of keys2){
-    if (keys.indexOf(x) == -1)
-      keys.push(x)
-  }
-  for (const x of keys1){
-    if (keys.indexOf(x) == -1)
-      keys.push(x)
-  }
-
-  console.log("All keys ", keys)
-
-  for (const x of keys1){
-    console.log(x,m1[x],m2[x])
-    var v1 = (keys1.indexOf(x)>-1)?m1[x]: (isNaN(m2[x])?{}:0)
-    var v2 = (keys2.indexOf(x)>-1)?m2[x]: (isNaN(m1[x])?{}:0)
-    console.log(v1,v2)
-    result[x] = isNaN(v1)?  deltaMessages(v1,v2) : v2-v1
-  }
-
-  return result
-}
 
 function get_messages(){
 
-  var messages = {}
-  for(const [k,v] of Object.entries(all_messages)){
+  var messages = {"black":{},"white":{}}
 
-    var mes = {}
-    for (const [func,val] of Object.entries(v)){
+  for(const colour of ["black","white"]){
+    for(const [k,v] of Object.entries(all_messages[colour])){
 
-      mes[func] = null
-      if (("eg" in val) && ("mg" in val))  
-        mes[func] = $balance_evaluation(val.mg,val.eg,val.pos)
-      else
-        mes[func] = val.all
+      var mes = {}
+      
+      for (const [func,val] of Object.entries(v)){
+        var vv = 0
+        if ((func != "peice") && (func != "colour") && (func != "square")){
+          if (("eg" in val) && ("mg" in val))  
+            vv = $balance_evaluation(val.mg,val.eg,val.pos)
+          else
+            vv = val.all
+          
+          mes[func] = vv
+        }
+      }
+      messages[colour][k] = mes
+
     }
-    messages[k] = mes
-
   }
   return messages
 }
@@ -297,10 +294,15 @@ function $isolated(pos, square) {
     if (board(pos, square.x - 1, y) == "P") return 0;
     if (board(pos, square.x + 1, y) == "P") return 0;
   }
-  store_message("The ${colour} pawn on ${square} is isolated",pos.i,{"colour":"white","square":square})
+
+  store_message1({"colour":(pos.i  ? "black" : "white"),
+    "peice":peice(pos,square.x,square.y),
+    "square":("abcdefgh"[square.x]+String(pos.i ? square.y+1: 8-square.y)),
+    "function":"$isolated",
+    "score":1,
+    "pos":pos})
   return 1;
 }
-
 
 
 
@@ -351,32 +353,35 @@ $phalanx
 function $phalanx(pos, square) {
   if (square == null) return sum(pos, $phalanx);
   if (board(pos, square.x, square.y) != "P") return 0;
-  if (board(pos, square.x - 1, square.y) == "P") return 1;
-  if (board(pos, square.x + 1, square.y) == "P") return 1;
+  if ((board(pos, square.x - 1, square.y) == "P") || 
+      (board(pos, square.x + 1, square.y) == "P"))
+      {
+        store_message1({"colour":(pos.i  ? "black" : "white"),
+          "peice":peice(pos,square.x,square.y),
+          "square":("abcdefgh"[square.x]+String(pos.i ? square.y+1: 8-square.y)),
+          "function":"$phalanx",
+          "score":1,
+          "pos":pos})
+        return 1;
+      }
   return 0;
 }
 
-
-
-
-
-/*
-$supported
----------------------*/
 function $supported(pos, square) {
   if (square == null) return sum(pos, $supported);
   if (board(pos, square.x, square.y) != "P") return 0;
-  return (board(pos, square.x - 1, square.y + 1) == "P" ? 1 : 0)
+  var v =  (board(pos, square.x - 1, square.y + 1) == "P" ? 1 : 0)
        + (board(pos, square.x + 1, square.y + 1) == "P" ? 1 : 0);
+  store_message1({"colour":(pos.i  ? "black" : "white"),
+        "peice":peice(pos,square.x,square.y),
+        "square":("abcdefgh"[square.x]+String(pos.i ? square.y+1: 8-square.y)),
+        "function":"$supported",
+        "score":v,
+        "pos":pos})
+  return v
 }
 
 
-
-
-
-/*
-$backward
----------------------*/
 function $backward(pos, square) {
   if (square == null) return sum(pos, $backward);
   if (board(pos, square.x, square.y) != "P") return 0;
@@ -387,7 +392,12 @@ function $backward(pos, square) {
   if (board(pos, square.x - 1, square.y - 2) == "p"
    || board(pos, square.x + 1, square.y - 2) == "p"
    || board(pos, square.x    , square.y - 1) == "p") {
-    store_message("The ${colour} pawn on ${square} is backward." , pos.i, {"colour":"white","square":square})
+    store_message1({"colour":(pos.i  ? "black" : "white"),
+      "peice":peice(pos,square.x,square.y),
+      "square":("abcdefgh"[square.x]+String(pos.i ? square.y+1: 8-square.y)),
+      "function":"$backward",
+      "score":1,
+      "pos":pos})
     return 1;
    }
   return 0;
@@ -396,17 +406,18 @@ function $backward(pos, square) {
 
 
 
-
-/*
-$doubled
----------------------*/
 function $doubled(pos, square) {
   if (square == null) return sum(pos, $doubled);
   if (board(pos, square.x, square.y) != "P") return 0;
   if (board(pos, square.x, square.y + 1) != "P") return 0;
   if (board(pos, square.x - 1, square.y + 1) == "P") return 0;
   if (board(pos, square.x + 1, square.y + 1) == "P") return 0;
-  store_message("The ${colour} pawn on ${square} is doubled." , pos.i, {"colour":"white","square":square})
+  store_message1({"colour":(pos.i  ? "black" : "white"),
+    "peice":peice(pos,square.x,square.y),
+    "square":("abcdefgh"[square.x]+String(pos.i ? square.y+1: 8-square.y)),
+    "function":"$doubled",
+    "score":1,
+    "pos":pos})
 
   return 1;
 }
@@ -415,26 +426,23 @@ function $doubled(pos, square) {
 
 
 
-/*
-$connected
----------------------*/
+
 function $connected(pos, square) {
   if (square == null) return sum(pos, $connected);
   if ($supported(pos, square) || $phalanx(pos, square)){
 
-    store_message("The ${colour} pawn on ${square} is connected." , pos.i, {"colour":"white","square":square})
-    return 1;
+    store_message1({"colour":(pos.i  ? "black" : "white"),
+      "peice":peice(pos,square.x,square.y),
+      "square":("abcdefgh"[square.x]+String(pos.i ? square.y+1: 8-square.y)),
+      "function":"$connected",
+      "score":1,
+      "pos":pos})
+      return 1;
   }
   return 0;
 }
 
 
-
-
-
-/*
-$middle_game_evaluation
----------------------*/
 function $middle_game_evaluation(pos, nowinnable) {
   var v = 0;
   var ev = $middle_game_evaluation_list(pos)
@@ -456,7 +464,53 @@ function $middle_game_evaluation_list(pos) {
   v.push( $passed_mg(pos) - $passed_mg(colorflip(pos)));
   v.push( $space(pos) - $space(colorflip(pos)));
   v.push( $king_mg(pos) - $king_mg(colorflip(pos)));
+  v=v.concat($additional_evaluation_list_one_side(pos));
   return v
+}
+
+function $middle_game_evaluation_list_one_side(pos) {
+  var v = [];
+  v.push( $piece_value_mg(pos) );
+  v.push( $psqt_mg(pos) );
+  v.push( $imbalance_total(pos));
+  v.push( $pawns_mg(pos) );
+  v.push( $pieces_mg(pos) );
+  v.push( $mobility_mg(pos) );
+  v.push( $threats_mg(pos) );
+  v.push( $passed_mg(pos) );
+  v.push( $space(pos) );
+  v.push( $king_mg(pos) );
+  v=v.concat($additional_evaluation_list_one_side(pos));
+  return v
+}
+
+function $additional_evaluation_list_one_side(pos) {
+  var v= [];
+  v.push( $isolated(pos))
+  v.push( $backward(pos))
+  v.push( $doubled(pos))
+  v.push( $connected(pos))
+  v.push( $doubled_isolated(pos))
+
+  return v
+}
+
+export function cs_difference(d1,d2)
+{
+    var ab = 0
+    var a2 = 0
+    var b2 = 0
+
+    for (const colour of ["black","white"]){
+        for (const [p,v] of Object.entries(d1[colour])){
+            ab += d2[colour][p] * v
+            a2 += d2[colour][p] * d2[colour][p]
+            b2 += v * v
+        }
+    }
+
+    return ab / (Math.sqrt(a2)* Math.sqrt(b2))
+    
 }
 
 
@@ -464,9 +518,6 @@ function $middle_game_evaluation_list(pos) {
 
 
 
-/*
-$end_game_evaluation
----------------------*/
 function $end_game_evaluation(pos, nowinnable) {
   var v = 0;
   var ev = $end_game_evaluation_list(pos)
@@ -491,13 +542,25 @@ function $end_game_evaluation_list(pos) {
   return v;
 }
 
+function $end_game_evaluation_list_one_side(pos) {
+  var v = [];
+  v.push( $piece_value_eg(pos) );
+  v.push( $psqt_eg(pos) );
+  v.push( $imbalance_total(pos));
+  v.push( $pawns_eg(pos) );
+  v.push( $pieces_eg(pos) );
+  v.push( $mobility_eg(pos) );
+  v.push( $threats_eg(pos) );
+  v.push( $passed_eg(pos));
+  v.push( $king_eg(pos) );
+  
+  return v;
+}
 
 
 
 
-/*
-$scale_factor
----------------------*/
+
 function $scale_factor(pos, eg) {
   if (eg == null) eg = $end_game_evaluation(pos);
   var pos2 = colorflip(pos);
@@ -548,9 +611,7 @@ function $scale_factor(pos, eg) {
 
 
 
-/*
-$phase
----------------------*/
+
 function $phase(pos) {
   var midgameLimit = 15258, endgameLimit  = 3915;
   var npm = $non_pawn_material(pos) + $non_pawn_material(colorflip(pos));
@@ -562,9 +623,7 @@ function $phase(pos) {
 
 
 
-/*
-$imbalance
----------------------*/
+
 function $imbalance(pos, square) {
   if (square == null) return sum(pos, $imbalance);
   var qo = [[0],[40,38],[32,255,-62],[0,104,4,0],[-26,-2,47,105,-208],[-189,24,117,133,-134,-6]];
@@ -592,9 +651,7 @@ function $imbalance(pos, square) {
 
 
 
-/*
-$bishop_count
----------------------*/
+
 function $bishop_count(pos, square) {
   if (square == null) return sum(pos, $bishop_count);
   if (board(pos, square.x, square.y) == "B") return 1;
@@ -605,13 +662,16 @@ function $bishop_count(pos, square) {
 
 
 
-/*
-$bishop_pair
----------------------*/
+
 function $bishop_pair(pos, square) {
   if ($bishop_count(pos) < 2) return 0;
   if (square == null){
-    store_message("${colour} has a biphop pair.",pos.i,{"colour":"white"})
+    store_message1({"colour":(pos.i  ? "black" : "white"),
+      "peice":null,
+      "square":null,
+      "function":"$bishop_pair",
+      "score":1,
+      "pos":pos})
     return 1438;
   }
   return board(pos, square.x, square.y) == "B" ? 1 : 0;
@@ -622,9 +682,7 @@ function $bishop_pair(pos, square) {
 
 
 
-/*
-$pinned_direction
----------------------*/
+
 function $pinned_direction(pos, square) {
   if (square == null) return sum(pos, $pinned_direction);
   if ("PNBRQK".indexOf(board(pos, square.x, square.y).toUpperCase()) < 0) return 0;
@@ -653,12 +711,6 @@ function $pinned_direction(pos, square) {
 }
 
 
-
-
-
-/*
-$mobility
----------------------*/
 function $mobility(pos, square) {
   if (square == null) return sum(pos, $mobility);
   var v = 0;  
@@ -677,13 +729,6 @@ function $mobility(pos, square) {
   return v;
 }
 
-
-
-
-
-/*
-$mobility_area
----------------------*/
 function $mobility_area(pos, square) {
   if (square == null) return sum(pos, $mobility_area);
   if (board(pos, square.x, square.y) == "K") return 0;
@@ -697,12 +742,6 @@ function $mobility_area(pos, square) {
 }
 
 
-
-
-
-/*
-$mobility_bonus
----------------------*/
 function $mobility_bonus(pos, square, mg) {
   if (square == null) return sum(pos, $mobility_bonus, mg);
   var bonus = mg ? [
@@ -722,12 +761,6 @@ function $mobility_bonus(pos, square, mg) {
 }
 
 
-
-
-
-/*
-$knight_attack
----------------------*/
 function $knight_attack(pos, square, s2) {
   if (square == null) return sum(pos, $knight_attack);
   var v = 0;
@@ -739,16 +772,17 @@ function $knight_attack(pos, square, s2) {
     && (s2 == null || s2.x == square.x + ix && s2.y == square.y + iy)
     && !$pinned(pos, {x:square.x + ix, y:square.y + iy})) v++;
   }
+  store_message1({"colour":(pos.i  ? "black" : "white"),
+    "peice":peice(pos,square.x,square.y),
+    "square":("abcdefgh"[square.x]+String(pos.i ? square.y+1: 8-square.y)),
+    "function":"$knight_attack",
+    "score":v,
+    "pos":pos})
   return v;
 }
 
 
 
-
-
-/*
-$bishop_xray_attack
----------------------*/
 function $bishop_xray_attack(pos, square, s2) {
   if (square == null) return sum(pos, $bishop_xray_attack);
   var v = 0;
@@ -770,11 +804,6 @@ function $bishop_xray_attack(pos, square, s2) {
 
 
 
-
-
-/*
-$rook_xray_attack
----------------------*/
 function $rook_xray_attack(pos, square, s2) {
   if (square == null) return sum(pos, $rook_xray_attack);
   var v = 0;
@@ -791,17 +820,11 @@ function $rook_xray_attack(pos, square, s2) {
       if (b != "-" && b != "R" && b != "Q" && b != "q") break;
     }
   }
-
   return v;
 }
 
 
 
-
-
-/*
-$queen_attack
----------------------*/
 function $queen_attack(pos, square, s2) {
   if (square == null) return sum(pos, $queen_attack);
   var v = 0;
@@ -823,19 +846,12 @@ function $queen_attack(pos, square, s2) {
 
 
 
-
-
-/*
-$outpost
----------------------*/
 function $outpost(pos, square) {
   if (square == null) return sum(pos, $outpost);
   if (board(pos, square.x, square.y) != "N"
    && board(pos, square.x, square.y) != "B") return 0;
   if (!$outpost_square(pos, square)) return 0;
-
-  var peice = board(pos, square.x, square.y) == "N" ? "knight" : "bishop"
-  store_message("The ${colour} "+peice+" is in an outpost at ${square}.",pos.i, {"colour":"white","square":square})
+    
   return 1;
 }
 
@@ -843,9 +859,7 @@ function $outpost(pos, square) {
 
 
 
-/*
-$outpost_square
----------------------*/
+
 function $outpost_square(pos, square) {
   if (square == null) return sum(pos, $outpost_square);
   if ($rank(pos, square) < 4 || $rank(pos, square) > 6) return 0;
@@ -853,7 +867,12 @@ function $outpost_square(pos, square) {
    && board(pos, square.x + 1, square.y + 1) != "P") return 0;
   if ($pawn_attacks_span(pos, square)) return 0;
   
-  store_message("${square} is an outpost for ${colour}.",pos.i, {"colour":"white","square":square})
+  store_message1({"colour":(pos.i  ? "black" : "white"),
+    "peice":null,
+    "square":("abcdefgh"[square.x]+String(pos.i ? square.y+1: 8-square.y)),
+    "function":"$outpost_square",
+    "score":1,
+    "pos":pos})
 
   return 1;
 }
@@ -862,9 +881,7 @@ function $outpost_square(pos, square) {
 
 
 
-/*
-$reachable_outpost
----------------------*/
+
 function $reachable_outpost(pos, square) {
   if (square == null) return sum(pos, $reachable_outpost);
   if (board(pos, square.x, square.y) != "B"
@@ -885,39 +902,35 @@ function $reachable_outpost(pos, square) {
       }
     }
   }
+  store_message1({"colour":(pos.i  ? "black" : "white"),
+    "peice":peice(pos,square.x,square.y),
+    "square":("abcdefgh"[square.x]+String(pos.i ? square.y+1: 8-square.y)),
+    "function":"$reachable_outpost",
+    "score":v,
+    "pos":pos})
   return v;
 }
 
 
-
-
-
-/*
-$minor_behind_pawn
----------------------*/
 function $minor_behind_pawn(pos, square) {
   if (square == null) return sum(pos, $minor_behind_pawn);
   if (board(pos, square.x, square.y) != "B"
    && board(pos, square.x, square.y) != "N") return 0;
   if (board(pos, square.x, square.y - 1).toUpperCase() != "P") return 0;
 
-  var peice = board(pos, square.x, square.y) == "N" ? "knight" : "bishop"
-  store_message("The ${colour} "+peice+" at ${square} is behind the pawns.",pos.i, {"colour":"white","square":square})
-
+  store_message1({"colour":(pos.i  ? "black" : "white"),
+    "peice":peice(pos,square.x,square.y),
+    "square":("abcdefgh"[square.x]+String(pos.i ? square.y+1: 8-square.y)),
+    "function":"$minor_behind_pawn",
+    "score":1,
+    "pos":pos})
   return 1;
 }
 
 
-
-
-
-/*
-$bishop_pawns
----------------------*/
 function $bishop_pawns(pos, square) {
   if (square == null) {
     var s = sum(pos, $bishop_pawns);
-    store_message("The bishop_pawns stockfish evaluation term for ${colour} is "+String(s)+".",pos.i, {"colour":"white","square":square})
     return s
   }
   if (board(pos, square.x, square.y) != "B") return 0;
@@ -936,11 +949,6 @@ function $bishop_pawns(pos, square) {
 
 
 
-
-
-/*
-$rook_on_file
----------------------*/
 function $rook_on_file(pos, square) {
   if (square == null) return sum(pos, $rook_on_file);
   if (board(pos, square.x, square.y) != "R") return 0;
@@ -949,10 +957,13 @@ function $rook_on_file(pos, square) {
     if (board(pos, square.x, y) == "P") return 0;
     if (board(pos, square.x, y) == "p") open = 0;
   }
-  if (open == 0)
-    store_message("The ${colour} rook at ${square} is on an open file.",pos.i, {"colour":"white","square":square})
-  if (open == 1)
-    store_message("The ${colour} rook at ${square} is on a semi-open file.",pos.i, {"colour":"white","square":square})
+  
+  store_message1({"colour":(pos.i  ? "black" : "white"),
+    "peice":peice(pos,square.x,square.y),
+    "square":("abcdefgh"[square.x]+String(pos.i ? square.y+1: 8-square.y)),
+    "function":"$rook_on_file",
+    "score":open+1,
+    "pos":pos})
 
   return open + 1;
 }
@@ -961,9 +972,7 @@ function $rook_on_file(pos, square) {
 
 
 
-/*
-$trapped_rook
----------------------*/
+
 function $trapped_rook(pos, square) {
   if (square == null) return sum(pos, $trapped_rook);
   if (board(pos, square.x, square.y) != "R") return 0;
@@ -976,18 +985,17 @@ function $trapped_rook(pos, square) {
     }
   }
   if ((kx < 4) != (square.x < kx)) return 0;
-  store_message("The ${colour} rook at ${square} is blocked in by the king.",pos.i, {"colour":"white","square":square})
-
+  
+  store_message1({"colour":(pos.i  ? "black" : "white"),
+    "peice":peice(pos,square.x,square.y),
+    "square":("abcdefgh"[square.x]+String(pos.i ? square.y+1: 8-square.y)),
+    "function":"$trapped_rook",
+    "score":1,
+    "pos":pos})
   return 1;
 }
 
 
-
-
-
-/*
-$weak_queen
----------------------*/
 function $weak_queen(pos, square) {
   if (square == null) return sum(pos, $weak_queen);
   if (board(pos, square.x, square.y) != "Q") return 0;
@@ -997,8 +1005,17 @@ function $weak_queen(pos, square) {
     var count = 0;
     for (var d = 1; d < 8; d++) {
       var b = board(pos, square.x + d * ix, square.y + d * iy);
-      if (b == "r" && (ix == 0 || iy == 0) && count == 1) return 1;
-      if (b == "b" && (ix != 0 && iy != 0) && count == 1) return 1;
+      if ((b == "r" && (ix == 0 || iy == 0) && count == 1) || 
+          (b == "b" && (ix != 0 && iy != 0) && count == 1)){
+
+            store_message1({"colour":(pos.i  ? "black" : "white"),
+              "peice":peice(pos,square.x,square.y),
+              "square":("abcdefgh"[square.x]+String(pos.i ? square.y+1: 8-square.y)),
+              "function":"$weak_queen",
+              "score":1,
+              "pos":pos})
+            return 1;
+          }
       if (b != "-") count++;
     }
   }
@@ -1008,10 +1025,6 @@ function $weak_queen(pos, square) {
 
 
 
-
-/*
-$space_area
----------------------*/
 function $space_area(pos, square) {
   if (square == null) return sum(pos, $space_area);
   var v = 0;
@@ -1030,13 +1043,6 @@ function $space_area(pos, square) {
   return v;
 }
 
-
-
-
-
-/*
-$pawn_attack
----------------------*/
 function $pawn_attack(pos, square) {
   if (square == null) return sum(pos, $pawn_attack);
   var v = 0;
@@ -1046,12 +1052,6 @@ function $pawn_attack(pos, square) {
 }
 
 
-
-
-
-/*
-$king_attack
----------------------*/
 function $king_attack(pos, square) {
   if (square == null) return sum(pos, $king_attack);
   for (var i = 0; i < 8; i++) {
@@ -1064,13 +1064,6 @@ function $king_attack(pos, square) {
   return 0;
 }
 
-
-
-
-
-/*
-$attack
----------------------*/
 function $attack(pos, square) {
   if (square == null) return sum(pos, $attack);
   var v = 0;
@@ -1087,9 +1080,6 @@ function $attack(pos, square) {
 
 
 
-/*
-$non_pawn_material
----------------------*/
 function $non_pawn_material(pos, square) {
   if (square == null) return sum(pos, $non_pawn_material);
   var i = "NBRQ".indexOf(board(pos, square.x, square.y));
@@ -1101,9 +1091,6 @@ function $non_pawn_material(pos, square) {
 
 
 
-/*
-$safe_pawn
----------------------*/
 function $safe_pawn(pos, square) {
   if (square == null) return sum(pos, $safe_pawn);
   if (board(pos, square.x, square.y) != "P") return 0;
@@ -1116,9 +1103,6 @@ function $safe_pawn(pos, square) {
 
 
 
-/*
-$threat_safe_pawn
----------------------*/
 function $threat_safe_pawn(pos, square) {
   if (square == null) return sum(pos, $threat_safe_pawn);
   if ("nbrq".indexOf(board(pos, square.x, square.y)) < 0) return 0;
@@ -1131,10 +1115,6 @@ function $threat_safe_pawn(pos, square) {
 
 
 
-
-/*
-$weak_enemies
----------------------*/
 function $weak_enemies(pos, square) {
   if (square == null) return sum(pos, $weak_enemies);
   if ("pnbrqk".indexOf(board(pos, square.x, square.y)) < 0) return 0;
@@ -1143,16 +1123,18 @@ function $weak_enemies(pos, square) {
   if (!$attack(pos, square)) return 0;
   if ($attack(pos, square) <= 1
    && $attack(colorflip(pos),{x:square.x,y:7-square.y}) > 1) return 0
+   store_message1({"colour":(pos.i  ? "black" : "white"),
+    "peice":peice(pos,square.x,square.y),
+    "square":("abcdefgh"[square.x]+String(pos.i ? square.y+1: 8-square.y)),
+    "function":"$weak_enemies",
+    "score":1,
+    "pos":pos})
   return 1;
 }
 
 
 
 
-
-/*
-$minor_threat
----------------------*/
 function $minor_threat(pos, square) {
   if (square == null) return sum(pos, $minor_threat);
   var type = "pnbrqk".indexOf(board(pos, square.x, square.y));
@@ -1163,47 +1145,51 @@ function $minor_threat(pos, square) {
          || board(pos, square.x + 1, square.y - 1) == "p"
          || ($attack(pos, square) <= 1 && $attack(colorflip(pos),{x:square.x,y:7-square.y}) > 1)))
     && !$weak_enemies(pos, square)) return 0;
+
+    store_message1({"colour":(pos.i  ? "black" : "white"),
+      "peice":peice(pos,square.x,square.y),
+      "square":("abcdefgh"[square.x]+String(pos.i ? square.y+1: 8-square.y)),
+      "function":"$minor_threat",
+      "score":type+1,
+      "pos":pos})
   return type + 1;
 }
 
 
 
-
-
-/*
-$rook_threat
----------------------*/
 function $rook_threat(pos, square) {
   if (square == null) return sum(pos, $rook_threat);
   var type = "pnbrqk".indexOf(board(pos, square.x, square.y));
   if (type < 0) return 0;
   if (!$weak_enemies(pos, square)) return 0;
   if (!$rook_xray_attack(pos, square)) return 0;
+  store_message1({"colour":(pos.i  ? "black" : "white"),
+    "peice":peice(pos,square.x,square.y),
+    "square":("abcdefgh"[square.x]+String(pos.i ? square.y+1: 8-square.y)),
+    "function":"$rook_threat",
+    "score":type+1,
+    "pos":pos})
   return type + 1;
 }
 
 
-
-
-
-/*
-$hanging
----------------------*/
 function $hanging(pos, square) {
   if (square == null) return sum(pos, $hanging);
   if (!$weak_enemies(pos, square)) return 0;
-  if (board(pos, square.x, square.y) != "p" && $attack(pos, square) > 1) return 1;
-  if (!$attack(colorflip(pos), {x:square.x,y:7-square.y})) return 1;
+  if ((board(pos, square.x, square.y) != "p" && $attack(pos, square) > 1) ||
+     (!$attack(colorflip(pos), {x:square.x,y:7-square.y}))){
+      store_message1({"colour":(pos.i  ? "black" : "white"),
+        "peice":peice(pos,square.x,square.y),
+        "square":("abcdefgh"[square.x]+String(pos.i ? square.y+1: 8-square.y)),
+        "function":"hanging",
+        "score":1,
+        "pos":pos})
+       return 1;
+     }
   return 0;
 }
 
 
-
-
-
-/*
-$king_threat
----------------------*/
 function $king_threat(pos, square) {
   if (square == null) return sum(pos, $king_threat);
   if ("pnbrq".indexOf(board(pos, square.x, square.y)) < 0) return 0;
@@ -1214,11 +1200,6 @@ function $king_threat(pos, square) {
 
 
 
-
-
-/*
-$pawn_push_threat
----------------------*/
 function $pawn_push_threat(pos, square) {
   if (square == null) return sum(pos, $pawn_push_threat);
   if ("pnbrqk".indexOf(board(pos, square.x, square.y)) < 0) return 0;
@@ -1246,11 +1227,6 @@ function $pawn_push_threat(pos, square) {
 
 
 
-
-
-/*
-$candidate_passed
----------------------*/
 function $candidate_passed(pos, square) {
   if (square == null) return sum(pos, $candidate_passed);
   if (board(pos, square.x, square.y) != "P") return 0;
@@ -1285,12 +1261,6 @@ function $candidate_passed(pos, square) {
 }
 
 
-
-
-
-/*
-$king_proximity
----------------------*/
 function $king_proximity(pos, square) {
   if (square == null) return sum(pos, $king_proximity);
   if (!$passed_leverable(pos, square)) return 0;
@@ -1319,11 +1289,6 @@ function $king_proximity(pos, square) {
 
 
 
-
-
-/*
-$passed_block
----------------------*/
 function $passed_block(pos, square) {
   if (square == null) return sum(pos, $passed_block);
   if (!$passed_leverable(pos, square)) return 0;
@@ -1355,12 +1320,6 @@ function $passed_block(pos, square) {
 }
 
 
-
-
-
-/*
-$passed_file
----------------------*/
 function $passed_file(pos, square) {
   if (square == null) return sum(pos, $passed_file);
   if (!$passed_leverable(pos, square)) return 0;
@@ -1369,12 +1328,6 @@ function $passed_file(pos, square) {
 }
 
 
-
-
-
-/*
-$passed_rank
----------------------*/
 function $passed_rank(pos, square) {
   if (square == null) return sum(pos, $passed_rank);
   if (!$passed_leverable(pos, square)) return 0;
@@ -1383,11 +1336,6 @@ function $passed_rank(pos, square) {
 
 
 
-
-
-/*
-$pawnless_flank
----------------------*/
 function $pawnless_flank(pos) {
   var pawns=[0,0,0,0,0,0,0,0], kx = 0;
   for (var x = 0; x < 8; x++) {
@@ -1407,11 +1355,6 @@ function $pawnless_flank(pos) {
 
 
 
-
-
-/*
-$strength_square
----------------------*/
 function $strength_square(pos, square) {
   if (square == null) return sum(pos, $strength_square);
   var v = 5;
@@ -1436,11 +1379,6 @@ function $strength_square(pos, square) {
 
 
 
-
-
-/*
-$storm_square
----------------------*/
 function $storm_square(pos, square, eg) {
   if (square == null) return sum(pos, $storm_square);
   var v = 0, ev = 5;
@@ -1474,10 +1412,6 @@ function $storm_square(pos, square, eg) {
 
 
 
-
-/*
-$shelter_strength
----------------------*/
 function $shelter_strength(pos, square) {
   var w = 0, s = 1024, tx = null;
   for (var x = 0; x < 8; x++) {
@@ -1501,11 +1435,6 @@ function $shelter_strength(pos, square) {
 
 
 
-
-
-/*
-$shelter_storm
----------------------*/
 function $shelter_storm(pos, square) {
   var w = 0, s = 1024, tx = null;
   for (var x = 0; x < 8; x++) {
@@ -1530,10 +1459,6 @@ function $shelter_storm(pos, square) {
 
 
 
-
-/*
-$king_pawn_distance
----------------------*/
 function $king_pawn_distance(pos, square) {
   var v = 6, kx = 0, ky = 0, px = 0, py = 0;
   for (var x = 0; x < 8; x++) {
@@ -1556,11 +1481,6 @@ function $king_pawn_distance(pos, square) {
 
 
 
-
-
-/*
-$check
----------------------*/
 function $check(pos, square, type) {
   if (square == null) return sum(pos, $check);
   if ($rook_xray_attack(pos, square)
@@ -1607,11 +1527,6 @@ function $check(pos, square, type) {
 
 
 
-
-
-/*
-$safe_check
----------------------*/
 function $safe_check(pos, square, type) {
   if (square == null) return sum(pos, $safe_check, type);
   if ("PNBRQK".indexOf(board(pos, square.x, square.y)) >= 0) return 0;
@@ -1628,10 +1543,6 @@ function $safe_check(pos, square, type) {
 
 
 
-
-/*
-$queen_count
----------------------*/
 function $queen_count(pos, square) {
   if (square == null) return sum(pos, $queen_count);
   if (board(pos, square.x, square.y) == "Q") return 1;
@@ -1640,11 +1551,6 @@ function $queen_count(pos, square) {
 
 
 
-
-
-/*
-$king_attackers_count
----------------------*/
 function $king_attackers_count(pos, square) {
   if (square == null) return sum(pos, $king_attackers_count);
   if ("PNBRQ".indexOf(board(pos, square.x, square.y)) < 0) return 0;
@@ -1673,11 +1579,6 @@ function $king_attackers_count(pos, square) {
 
 
 
-
-
-/*
-$king_attackers_weight
----------------------*/
 function $king_attackers_weight(pos, square) {
   if (square == null) return sum(pos, $king_attackers_weight);
   if ($king_attackers_count(pos, square)) {
@@ -1688,11 +1589,6 @@ function $king_attackers_weight(pos, square) {
 
 
 
-
-
-/*
-$king_attacks
----------------------*/
 function $king_attacks(pos, square) {
   if (square == null) return sum(pos, $king_attacks);
   if ("NBRQ".indexOf(board(pos, square.x, square.y)) < 0) return 0;
@@ -1718,12 +1614,6 @@ function $king_attacks(pos, square) {
 }
 
 
-
-
-
-/*
-$weak_bonus
----------------------*/
 function $weak_bonus(pos, square) {
   if (square == null) return sum(pos, $weak_bonus);
   if (!$weak_squares(pos, square)) return 0;
@@ -1733,11 +1623,6 @@ function $weak_bonus(pos, square) {
 
 
 
-
-
-/*
-$weak_squares
----------------------*/
 function $weak_squares(pos, square) {
   if (square == null) return sum(pos, $weak_squares);
   if ($attack(pos, square)) {
@@ -1753,11 +1638,6 @@ function $weak_squares(pos, square) {
 
 
 
-
-
-/*
-$winnable
----------------------*/
 function $winnable(pos, square) {
   if (square != null) return 0;
   var pawns = 0, kx = [0, 0], ky = [0, 0], flanks = [0, 0];
@@ -1795,10 +1675,6 @@ function $winnable(pos, square) {
 
 
 
-
-/*
-$unsafe_checks
----------------------*/
 function $unsafe_checks(pos, square) {
   if (square == null) return sum(pos, $unsafe_checks);
   if ($check(pos, square, 0) && $safe_check(pos, null, 0) == 0) return 1;
@@ -1809,11 +1685,6 @@ function $unsafe_checks(pos, square) {
 
 
 
-
-
-/*
-$tempo
----------------------*/
 function $tempo(pos, square) {
   if (square != null) return 0;
   return 28 * (pos.w ? 1 : -1);
@@ -1822,10 +1693,6 @@ function $tempo(pos, square) {
 
 
 
-
-/*
-$pawn_count
----------------------*/
 function $pawn_count(pos, square) {
   if (square == null) return sum(pos, $pawn_count);
   if (board(pos, square.x, square.y) == "P") return 1;
@@ -1834,11 +1701,6 @@ function $pawn_count(pos, square) {
 
 
 
-
-
-/*
-$connected_bonus
----------------------*/
 function $connected_bonus(pos, square) {
   if (square == null) return sum(pos, $connected_bonus);
   if (!$connected(pos, square)) return 0;
@@ -1853,36 +1715,18 @@ function $connected_bonus(pos, square) {
 }
 
 
-
-
-
-/*
-$mobility_mg
----------------------*/
 function $mobility_mg(pos, square) {
   if (square == null) return sum(pos, $mobility_mg);
   return $mobility_bonus(pos, square, true);
 }
 
 
-
-
-
-/*
-$mobility_eg
----------------------*/
 function $mobility_eg(pos, square) {
   if (square == null) return sum(pos, $mobility_eg);
   return $mobility_bonus(pos, square, false);
 }
 
 
-
-
-
-/*
-$piece_value_bonus
----------------------*/
 function $piece_value_bonus(pos, square, mg) {
   if (square == null) return sum(pos, $piece_value_bonus);
   var a = mg ? [124, 781, 825, 1276, 2538]
@@ -1893,12 +1737,6 @@ function $piece_value_bonus(pos, square, mg) {
 }
 
 
-
-
-
-/*
-$psqt_bonus
----------------------*/
 function $psqt_bonus(pos, square, mg) {
   if (square == null) return sum(pos, $psqt_bonus, mg);
   var bonus = mg ? [
@@ -1927,23 +1765,12 @@ function $psqt_bonus(pos, square, mg) {
 
 
 
-
-
-/*
-$piece_value_mg
----------------------*/
 function $piece_value_mg(pos, square) {
   if (square == null) return sum(pos, $piece_value_mg);
   return $piece_value_bonus(pos, square, true);
 }
 
 
-
-
-
-/*
-$piece_value_eg
----------------------*/
 function $piece_value_eg(pos, square) {
   if (square == null) return sum(pos, $piece_value_eg);
   return $piece_value_bonus(pos, square, false);
@@ -1951,23 +1778,14 @@ function $piece_value_eg(pos, square) {
 
 
 
-
-
-/*
-$psqt_mg
----------------------*/
 function $psqt_mg(pos, square) {
   if (square == null) return sum(pos, $psqt_mg);
+  
   return $psqt_bonus(pos, square, true);
 }
 
 
 
-
-
-/*
-$psqt_eg
----------------------*/
 function $psqt_eg(pos, square) {
   if (square == null) return sum(pos, $psqt_eg);
   return $psqt_bonus(pos, square, false);
@@ -1975,31 +1793,16 @@ function $psqt_eg(pos, square) {
 
 
 
-
-
-
-
-/*
-$king_protector
----------------------*/
 function $king_protector(pos, square) {
   if (square == null) return sum(pos, $king_protector);
   if (board(pos, square.x, square.y) != "N"
    && board(pos, square.x, square.y) != "B") return 0;
   const piece = board(pos, square.x, square.y) == "N" ? "knight" : "bishop"
   const kd = $king_distance(pos, square);
-  if (kd < 3)
-    store_message("the ${colour} "+piece+" on ${square} is protecting the king",pos.i,{"colour":"white","square":square})
-  return kd
+ return kd
 }
 
 
-
-
-
-/*
-$knight_count
----------------------*/
 function $knight_count(pos, square) {
   if (square == null) return sum(pos, $knight_count);
   if (board(pos, square.x, square.y) == "N") return 1;
@@ -2007,12 +1810,6 @@ function $knight_count(pos, square) {
 }
 
 
-
-
-
-/*
-$imbalance_total
----------------------*/
 function $imbalance_total(pos, square) {
   var v = 0;
   v += $imbalance(pos) - $imbalance(colorflip(pos));
@@ -2022,11 +1819,6 @@ function $imbalance_total(pos, square) {
 
 
 
-
-
-/*
-$weak_unopposed_pawn
----------------------*/
 function $weak_unopposed_pawn(pos, square) {
   if (square == null) return sum(pos, $weak_unopposed_pawn);
   if ($opposed(pos, square)) return 0;
@@ -2038,11 +1830,6 @@ function $weak_unopposed_pawn(pos, square) {
 
 
 
-
-
-/*
-$rook_count
----------------------*/
 function $rook_count(pos, square) {
   if (square == null) return sum(pos, $rook_count);
   if (board(pos, square.x, square.y) == "R") return 1;
@@ -2051,11 +1838,6 @@ function $rook_count(pos, square) {
 
 
 
-
-
-/*
-$opposite_bishops
----------------------*/
 function $opposite_bishops(pos) {
   if ($bishop_count(pos) != 1) return 0;
   if ($bishop_count(colorflip(pos)) != 1) return 0;
@@ -2066,16 +1848,18 @@ function $opposite_bishops(pos) {
       if (board(pos, x, y) == "b") color[1] = (x + y) % 2;
     }
   }
+  if(color[0] == color[1] ? 0 : 1){
+    store_message1({"colour":(pos.i  ? "black" : "white"),
+      "peice":null,
+      "square":null,
+      "function":"$opposite_bishops",
+      "score":1,
+      "pos":pos})
+  }
   return color[0] == color[1] ? 0 : 1;
 }
 
 
-
-
-
-/*
-$king_distance
----------------------*/
 function $king_distance(pos, square) {
   if (square == null) return sum(pos, $king_distance);
   for (var x = 0; x < 8; x++) {
@@ -2090,47 +1874,31 @@ function $king_distance(pos, square) {
 
 
 
-
-
-/*
-$long_diagonal_bishop
----------------------*/
 function $long_diagonal_bishop(pos, square) {
   if (square == null) return sum(pos, $long_diagonal_bishop);
   if (board(pos, square.x, square.y) != "B") return 0;
   
   if (square.x - square.y != 0 && square.x - (7 - square.y) != 0){
-    store_message("There is a ${colour} bishop on ${square}.",pos.i,{"colour":"white","square":square})
     return 0;
   }
   var x1 = square.x, y1 = square.y;
   if (Math.min(x1,7-x1) > 2) {
-    store_message("The ${colour} bishop on ${square}is on a long diagonal.",pos.i,{"colour":"white","square":square})
     return 0;
   }
   for (var i = Math.min(x1,7-x1); i < 4; i++) {
     if (board(pos, x1, y1) == "p"){
-      store_message("The ${colour} bishop on ${square} is on the long diaganol, but blocked by the ${colour2} pawn on ${square2}",pos.i,{"colour":"white","colour2":"black","square":square,"square2":{x:x1,y:y1}})
       return 0;
     } 
     if (board(pos, x1, y1) == "P"){
-      store_message("The ${colour} bishop on ${square} is on the long diaganol, but blocked by the ${colour} pawn on ${square2}",pos.i,{"colour":"white","colour2":"black","square":square,"square2":{x:x1,y:y1}})
       return 0;
     } 
     if (x1 < 4) x1++; else x1--;
     if (y1 < 4) y1++; else y1--;
   }
-  store_message("The ${colour} bishop on ${square} is on the long diaganol and attacking the centre of the board",pos.i,{"colour":"white","square":square})
   return 1;
 }
 
 
-
-
-
-/*
-$queen_attack_diagonal
----------------------*/
 function $queen_attack_diagonal(pos, square, s2) {
   if (square == null) return sum(pos, $queen_attack_diagonal);
   var v = 0;
@@ -2153,24 +1921,22 @@ function $queen_attack_diagonal(pos, square, s2) {
 
 
 
-
-
-/*
-$pinned
----------------------*/
 function $pinned(pos, square) {
   if (square == null) return sum(pos, $pinned);
   if ("PNBRQK".indexOf(board(pos, square.x, square.y)) < 0) return 0;
-  return $pinned_direction(pos, square) > 0 ? 1 : 0;
+  var v =  $pinned_direction(pos, square) > 0 ? 1 : 0;
+  if (v>0)
+    store_message1({"colour":(pos.i  ? "black" : "white"),
+      "peice":peice(pos,square.x,square.y),
+      "square":("abcdefgh"[square.x]+String(pos.i ? square.y+1: 8-square.y)),
+      "function":"$pinned",
+      "score":v,
+      "pos":pos})
+  return v
 }
 
 
 
-
-
-/*
-$king_ring
----------------------*/
 function $king_ring(pos, square, full) {
   if (square == null) return sum(pos, $king_ring);
   if (!full
@@ -2188,11 +1954,6 @@ function $king_ring(pos, square, full) {
 
 
 
-
-
-/*
-$slider_on_queen
----------------------*/
 function $slider_on_queen(pos, square) {
   if (square == null) return sum(pos, $slider_on_queen);
   var pos2 = colorflip(pos);
@@ -2213,11 +1974,6 @@ function $slider_on_queen(pos, square) {
 
 
 
-
-
-/*
-$knight_on_queen
----------------------*/
 function $knight_on_queen(pos, square) {
   if (square == null) return sum(pos, $knight_on_queen);
   var pos2 = colorflip(pos);
@@ -2245,12 +2001,6 @@ function $knight_on_queen(pos, square) {
 }
 
 
-
-
-
-/*
-$outpost_total
----------------------*/
 function $outpost_total(pos, square) {
   if (square == null) return sum(pos, $outpost_total);
   if (board(pos, square.x, square.y) != "N"
@@ -2281,11 +2031,6 @@ function $outpost_total(pos, square) {
 
 
 
-
-
-/*
-$restricted
----------------------*/
 function $restricted(pos, square) {
   if (square == null) return sum(pos, $restricted);
   if ($attack(pos, square) == 0) return 0;
@@ -2298,11 +2043,6 @@ function $restricted(pos, square) {
 
 
 
-
-
-/*
-$knight_defender
----------------------*/
 function $knight_defender(pos, square) {
   if (square == null) return sum(pos, $knight_defender);
   if ($knight_attack(pos, square) && $king_attack(pos, square)) return 1;
@@ -2311,11 +2051,6 @@ function $knight_defender(pos, square) {
 
 
 
-
-
-/*
-$endgame_shelter
----------------------*/
 function $endgame_shelter(pos, square) {
   var w = 0, s = 1024, tx = null;
   var e = null
@@ -2337,11 +2072,6 @@ function $endgame_shelter(pos, square) {
 
 
 
-
-
-/*
-$space
----------------------*/
 function $space(pos, square) {
   if ($non_pawn_material(pos) + $non_pawn_material(colorflip(pos)) < 12222) return 0;
   var pieceCount = 0, blockedCount = 0;
@@ -2360,9 +2090,6 @@ function $space(pos, square) {
 
 
 
-/*
-$weak_lever
----------------------*/
 function $weak_lever(pos, square) {
   if (square == null) return sum(pos, $weak_lever);
   if (board(pos, square.x, square.y) != "P") return 0;
@@ -2375,11 +2102,6 @@ function $weak_lever(pos, square) {
 
 
 
-
-
-/*
-$blockers_for_king
----------------------*/
 function $blockers_for_king(pos, square) {
   if (square == null) return sum(pos, $blockers_for_king);
   if ($pinned_direction(colorflip(pos), {x:square.x,y:7-square.y})) return 1;
@@ -2388,11 +2110,6 @@ function $blockers_for_king(pos, square) {
 
 
 
-
-
-/*
-$rook_on_queen_file
----------------------*/
 function $rook_on_queen_file(pos, square) {
   if (square == null) return sum(pos, $rook_on_queen_file);
   if (board(pos, square.x, square.y) != "R") return 0;
@@ -2403,12 +2120,6 @@ function $rook_on_queen_file(pos, square) {
 }
 
 
-
-
-
-/*
-$winnable_total_mg
----------------------*/
 function $winnable_total_mg(pos, v) {
   if (v == null) v = $middle_game_evaluation(pos, true);
   return (v > 0 ? 1 : v < 0 ? -1 : 0)
@@ -2416,12 +2127,6 @@ function $winnable_total_mg(pos, v) {
 }
 
 
-
-
-
-/*
-$winnable_total_eg
----------------------*/
 function $winnable_total_eg(pos, v) {
   if (v == null) v = $end_game_evaluation(pos, true);
   return (v > 0 ? 1 : v < 0 ? -1 : 0)
@@ -2430,11 +2135,6 @@ function $winnable_total_eg(pos, v) {
 
 
 
-
-
-/*
-$flank_attack
----------------------*/
 function $flank_attack(pos, square) {
   if (square == null) return sum(pos, $flank_attack);
   if (square.y > 4) return 0;
@@ -2456,11 +2156,6 @@ function $flank_attack(pos, square) {
 
 
 
-
-
-/*
-$flank_defense
----------------------*/
 function $flank_defense(pos, square) {
   if (square == null) return sum(pos, $flank_defense);
   if (square.y > 4) return 0;
@@ -2479,12 +2174,6 @@ function $flank_defense(pos, square) {
 }
 
 
-
-
-
-/*
-$king_danger
----------------------*/
 function $king_danger(pos) {
   var count = $king_attackers_count(pos);
   var weight = $king_attackers_weight(pos);
@@ -2517,11 +2206,6 @@ function $king_danger(pos) {
 
 
 
-
-
-/*
-$king_mg
----------------------*/
 function $king_mg(pos) {
   var v = 0;
   var kd = $king_danger(pos);
@@ -2535,11 +2219,6 @@ function $king_mg(pos) {
 
 
 
-
-
-/*
-$king_eg
----------------------*/
 function $king_eg(pos) {
   var v = 0;
   v -= 16 * $king_pawn_distance(pos);
@@ -2551,11 +2230,6 @@ function $king_eg(pos) {
 
 
 
-
-
-/*
-$weak_queen_protection
----------------------*/
 function $weak_queen_protection(pos, square) {
   if (square == null) return sum(pos, $weak_queen_protection);
   if (!$weak_enemies(pos, square)) return 0;
@@ -2564,12 +2238,6 @@ function $weak_queen_protection(pos, square) {
 }
 
 
-
-
-
-/*
-$threats_mg
----------------------*/
 function $threats_mg(pos) {
   var v = 0;
   v += 69 * $hanging(pos);
@@ -2591,12 +2259,6 @@ function $threats_mg(pos) {
 }
 
 
-
-
-
-/*
-$threats_eg
----------------------*/
 function $threats_eg(pos) {
   var v = 0;
   v += 36 * $hanging(pos);
@@ -2617,12 +2279,6 @@ function $threats_eg(pos) {
 }
 
 
-
-
-
-/*
-$passed_leverable
----------------------*/
 function $passed_leverable(pos, square) {
   if (square == null) return sum(pos, $passed_leverable);
   if (!$candidate_passed(pos, square)) return 0;
@@ -2640,12 +2296,6 @@ function $passed_leverable(pos, square) {
 }
 
 
-
-
-
-/*
-$passed_mg
----------------------*/
 function $passed_mg(pos, square) {
   if (square == null) return sum(pos, $passed_mg);
   if (!$passed_leverable(pos, square)) return 0;
@@ -2657,12 +2307,6 @@ function $passed_mg(pos, square) {
 }
 
 
-
-
-
-/*
-$passed_eg
----------------------*/
 function $passed_eg(pos, square) {
   if (square == null) return sum(pos, $passed_eg);
   if (!$passed_leverable(pos, square)) return 0;
@@ -2675,12 +2319,6 @@ function $passed_eg(pos, square) {
 }
 
 
-
-
-
-/*
-$piece_count
----------------------*/
 function $piece_count(pos, square) {
   if (square == null) return sum(pos, $piece_count);
   var i = "PNBRQK".indexOf(board(pos, square.x, square.y));
@@ -2688,12 +2326,6 @@ function $piece_count(pos, square) {
 }
 
 
-
-
-
-/*
-$bishop_xray_pawns
----------------------*/
 function $bishop_xray_pawns(pos, square) {
   if (square == null) return sum(pos, $bishop_xray_pawns);
   if (board(pos, square.x, square.y) != "B") return 0;
@@ -2708,12 +2340,6 @@ function $bishop_xray_pawns(pos, square) {
 }
 
 
-
-
-
-/*
-$rook_on_king_ring
----------------------*/
 function $rook_on_king_ring(pos, square) {
   if (square == null) return sum(pos, $rook_on_king_ring);
   if (board(pos, square.x, square.y) != "R") return 0;
@@ -2725,12 +2351,6 @@ function $rook_on_king_ring(pos, square) {
 }
 
 
-
-
-
-/*
-$bishop_on_king_ring
----------------------*/
 function $bishop_on_king_ring(pos, square) {
   if (square == null) return sum(pos, $bishop_on_king_ring);
   if (board(pos, square.x, square.y) != "B") return 0;
@@ -2749,12 +2369,6 @@ function $bishop_on_king_ring(pos, square) {
 }
 
 
-
-
-
-/*
-$queen_infiltration
----------------------*/
 function $queen_infiltration(pos, square) {
   if (square == null) return sum(pos, $queen_infiltration);
   if (board(pos, square.x, square.y) != "Q") return 0;
@@ -2766,12 +2380,6 @@ function $queen_infiltration(pos, square) {
 }
 
 
-
-
-
-/*
-$pieces_mg
----------------------*/
 function $pieces_mg(pos, square) {
   if (square == null) return sum(pos, $pieces_mg);
   if ("NBRQ".indexOf(board(pos, square.x, square.y)) < 0) return 0;
@@ -2794,11 +2402,6 @@ function $pieces_mg(pos, square) {
 
 
 
-
-
-/*
-$pieces_eg
----------------------*/
 function $pieces_eg(pos, square) {
   if (square == null) return sum(pos, $pieces_eg);
   if ("NBRQ".indexOf(board(pos, square.x, square.y)) < 0) return 0;
@@ -2817,12 +2420,6 @@ function $pieces_eg(pos, square) {
 }
 
 
-
-
-
-/*
-$blocked
----------------------*/
 function $blocked(pos, square) {
   if (square == null) return sum(pos, $blocked);
   if (board(pos, square.x, square.y) != "P") return 0;
@@ -2832,12 +2429,6 @@ function $blocked(pos, square) {
 }
 
 
-
-
-
-/*
-$pawn_attacks_span
----------------------*/
 function $pawn_attacks_span(pos, square) {
   if (square == null) return sum(pos, $pawn_attacks_span);
   var pos2 = colorflip(pos);
@@ -2856,11 +2447,6 @@ function $pawn_attacks_span(pos, square) {
 
 
 
-
-
-/*
-$doubled_isolated
----------------------*/
 function $doubled_isolated(pos, square) {
   if (square == null) return sum(pos, $doubled_isolated);
   if (board(pos, square.x, square.y) != "P") return 0;
@@ -2880,11 +2466,6 @@ function $doubled_isolated(pos, square) {
 
 
 
-
-
-/*
-$pawns_mg
----------------------*/
 function $pawns_mg(pos, square) {
   if (square == null) return sum(pos, $pawns_mg);
   var v = 0;
@@ -2899,12 +2480,6 @@ function $pawns_mg(pos, square) {
 }
 
 
-
-
-
-/*
-$pawns_eg
----------------------*/
 function $pawns_eg(pos, square) {
   if (square == null) return sum(pos, $pawns_eg);
   var v = 0;
@@ -2921,17 +2496,7 @@ function $pawns_eg(pos, square) {
 
 
 
-
-
-/*
-$rule50
----------------------*/
 function $rule50(pos, square) {
   if (square != null) return 0;
   return pos.m[0];
 }
-
-
-
-
-

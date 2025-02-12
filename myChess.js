@@ -2,7 +2,6 @@ import "https://cdnjs.cloudflare.com/ajax/libs/chessboard-js/1.0.0/chessboard-1.
 import {Chess} from "https://cdnjs.cloudflare.com/ajax/libs/chess.js/0.13.4/chess.min.js"
 import {UCIengine} from "./engine.js"
 import {gem} from "./gem.js"
-import {evalFEN,eval_vector,FEN2Messages} from "./SFeval.js"
 var board
 
 export class myChess{
@@ -83,18 +82,12 @@ export class myChess{
                 this.moves[i].pgn_before = chess.pgn()
                 this.moves[i].eval_before = null
                 this.moves[i].eval_after = null
-                this.moves[i].description_before = FEN2Messages(chess.fen())
-                if (i > 0){
-                    this.moves[i-1].description_after  = this.moves[i].description_before
-                }
-                this.moves[i].description_before = FEN2Messages(chess.fen())
+                
+                
                 chess.move(this.moves[i])
                 this.moves[i].fen_after = chess.fen()
                 this.moves[i].pgn_after = chess.pgn()
-                if (i == this.moves.length -1 ){
-
-                    this.moves[i].description_after = FEN2Messages(chess.fen())
-                }
+                 
                 
 
                 var sl = this
@@ -274,7 +267,7 @@ export class myChess{
                     '<button id="'+this.mid("last_control")+'" >  \>\> </button>'+
                     '<button id="'+this.mid("reportButton")+'" >Report</button>'+
                     '<button id="'+this.mid("notesButton")+'" >Notes</button>'+
-                    '<button id="'+this.mid("feedbackButton")+'" >Hint</button>'+
+                    '<button id="'+this.mid("feedbackButton")+'" >Computer Analysis</button>'+
                 '</div>'+
                 '<div id="'+this.mid("mygem")+'"class="myChess_gem"> '+
                 '</div>'+
@@ -299,14 +292,9 @@ export class myChess{
         this.gem=new gem(this.mid("mygem"),this)
 
         this.midd("feedbackButton").on("click",(event) =>{
-
-            var p = self.moveOnBoard-1
-
-            if (p >=0)
+            if (self.moveOnBoard > 0)
             {
-
-                if (self.moves[p].eval_after != null)
-                    self.gem.position_feedback(self.moves[p],self.moveOnBoard % 2 == 0 ? "white" : "black")
+                 self.gem.position_feedback(self.moves[self.moveOnBoard-1],self.moveOnBoard % 2 == 0 ? "white" : "black")
             }
         })
         this.midd("flip_control").on("click",(event) => {
