@@ -82,6 +82,7 @@ export class myChess{
                 this.moves[i].pgn_before = chess.pgn()
                 this.moves[i].eval_before = null
                 this.moves[i].eval_after = null
+                this.moves[i].move_number = i+1
                 
                 
                 chess.move(this.moves[i])

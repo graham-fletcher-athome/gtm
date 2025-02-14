@@ -94,46 +94,14 @@ export function eval_description(fen){
   var pos = parseFEN(fen)
 
   var result = {}
-  var white  = $balance_evaluation($middle_game_evaluation_list_one_side(pos),
+  result.white  = $balance_evaluation($middle_game_evaluation_list_one_side(pos),
                                    $end_game_evaluation_list_one_side(pos),pos)
-  result.white = {"piece_value": white[0],
-          "psqt": white[1],
-          "imbalance": white[2],
-          "pawns": white[3],
-          "pieces": white[4],
-          "mobility": white[5],
-          "threats" : white[6],
-          "passed" : white[7],
-          "space" : white[8],
-          "king" :white[9],
-          "isolated_pawns" :white[10],
-          "backward_pawns" :white[11],
-          "doubled_pawns" :white[12],
-          "connected_pawns" :white[13],
-          "doubled_and_isolated_pawns": white[14]
-  }
+  
 
   pos = colorflip(pos)
-  var black = $balance_evaluation($middle_game_evaluation_list_one_side(pos),
+  result.black = $balance_evaluation($middle_game_evaluation_list_one_side(pos),
                                   $end_game_evaluation_list_one_side(pos),pos)
-
-  result.black = {"piece_value": black[0],
-          "psqt": black[1],
-          "imbalance": black[2],
-          "pawns": black[3],
-          "pieces": black[4],
-          "mobility": black[5],
-          "threats" : black[6],
-          "passed" : black[7],
-          "space" : black[8],
-          "king" :black[9],
-          "isolated_pawns" :black[10],
-          "backward_pawns" :black[11],
-          "doubled_pawns" :black[12],
-          "connected_pawns" :black[13],
-          "doubled_and_isolated_pawns": black[14]
-  }
-
+                              
   return result
 }
 
@@ -260,14 +228,8 @@ function peice(pos,x,y){
 }
 
 function $balance_evaluation(mg,eg,pos) {
-  if (mg.constructor !== Array){
-    var p = $phase(pos)
-    eg = eg * $scale_factor(pos, eg) / 64;
-    var v = (((mg * p + ((eg * (128 - p)) << 0)) / 128) << 0);
-    return v;
-  }
-  else
-  {
+
+  if (mg.constructor == Array){
     v = []
     for (var x =0; x < Math.max(mg.length,eg.length); x++)
     {
@@ -277,6 +239,21 @@ function $balance_evaluation(mg,eg,pos) {
     }
     return v;
   }
+  
+  if (typeof mg === "object")
+  {
+    v = {}
+    for ( const [k,val] of Object.entries(mg)){
+      v[k] = $balance_evaluation(val,eg[k],pos)
+    }
+
+    return v
+  }
+  var p = $phase(pos)
+  eg = eg * $scale_factor(pos, eg) / 64;
+  var v = (((mg * p + ((eg * (128 - p)) << 0)) / 128) << 0);
+  return v;
+  
 }
 
 
@@ -295,12 +272,6 @@ function $isolated(pos, square) {
     if (board(pos, square.x + 1, y) == "P") return 0;
   }
 
-  store_message1({"colour":(pos.i  ? "black" : "white"),
-    "peice":peice(pos,square.x,square.y),
-    "square":("abcdefgh"[square.x]+String(pos.i ? square.y+1: 8-square.y)),
-    "function":"$isolated",
-    "score":1,
-    "pos":pos})
   return 1;
 }
 
@@ -372,12 +343,7 @@ function $supported(pos, square) {
   if (board(pos, square.x, square.y) != "P") return 0;
   var v =  (board(pos, square.x - 1, square.y + 1) == "P" ? 1 : 0)
        + (board(pos, square.x + 1, square.y + 1) == "P" ? 1 : 0);
-  store_message1({"colour":(pos.i  ? "black" : "white"),
-        "peice":peice(pos,square.x,square.y),
-        "square":("abcdefgh"[square.x]+String(pos.i ? square.y+1: 8-square.y)),
-        "function":"$supported",
-        "score":v,
-        "pos":pos})
+
   return v
 }
 
@@ -469,31 +435,44 @@ function $middle_game_evaluation_list(pos) {
 }
 
 function $middle_game_evaluation_list_one_side(pos) {
-  var v = [];
-  v.push( $piece_value_mg(pos) );
-  v.push( $psqt_mg(pos) );
-  v.push( $imbalance_total(pos));
-  v.push( $pawns_mg(pos) );
-  v.push( $pieces_mg(pos) );
-  v.push( $mobility_mg(pos) );
-  v.push( $threats_mg(pos) );
-  v.push( $passed_mg(pos) );
-  v.push( $space(pos) );
-  v.push( $king_mg(pos) );
-  v=v.concat($additional_evaluation_list_one_side(pos));
+  var v = {};
+  v.piece_value =  $piece_value_mg(pos);
+  v.psqt = $psqt_mg(pos) ;
+  v.imbalance = $imbalance_total(pos);
+  v.pawns = $pawns_mg(pos) ;
+  v.pieces = $pieces_mg(pos);
+  v.mobility = $mobility_mg(pos);
+  v.threats = $threats_mg(pos) ;
+  v.passed =  $passed_mg(pos) ;
+  v.space = $space(pos) ;
+  v.king = $king_mg(pos) ;
+  v={ ...$additional_evaluation_list_one_side(pos) , ...v};
   return v
 }
 
 function $additional_evaluation_list_one_side(pos) {
-  var v= [];
-  v.push( $isolated(pos))
-  v.push( $backward(pos))
-  v.push( $doubled(pos))
-  v.push( $connected(pos))
-  v.push( $doubled_isolated(pos))
+  var v= {};
+  v.isolated =  $isolated(pos)
+  v.backward =  $backward(pos)
+  v.doubled = $doubled(pos)
+  v.connected =$connected(pos)
+  v.doubled_isolated =$doubled_isolated(pos)
 
+  const control_map = $control_map(pos)
+  const attack_map = $attack_map(pos)
+
+  v.central_control = $sum_map($apply_mask_to_map(control_map,$centre_m),(x)=>{return Math.sign(x)})
+  v.queenside_attack_control = $sum_map($apply_mask_to_map($apply_mask_to_map(control_map,$queenside_m),$attack_m),(x)=>{return Math.sign(x)})
+  v.kingside_attack_control = $sum_map($apply_mask_to_map($apply_mask_to_map(control_map,$kingside_m),$attack_m),(x)=>{return Math.sign(x)})
+  v.queenside_defence_control = $sum_map($apply_mask_to_map($apply_mask_to_map(control_map,$queenside_m),$defence_m),(x)=>{return Math.sign(x)})
+  v.kingside_defence_control = $sum_map($apply_mask_to_map($apply_mask_to_map(control_map,$kingside_m),$defence_m),(x)=>{return Math.sign(x)})
+  v.central_preasure = $sum_map($apply_mask_to_map(attack_map,$centre_m),(x)=>{return x>0?1:0})
+  v.queenside_preasure = $sum_map($apply_mask_to_map($apply_mask_to_map(attack_map,$queenside_m),$attack_m),(x)=>{return x>0?1:0})
+  v.kingside_preasure = $sum_map($apply_mask_to_map($apply_mask_to_map(attack_map,$kingside_m),$attack_m),(x)=>{return x>0?1:0})
   return v
 }
+
+
 
 export function cs_difference(d1,d2)
 {
@@ -543,18 +522,21 @@ function $end_game_evaluation_list(pos) {
 }
 
 function $end_game_evaluation_list_one_side(pos) {
-  var v = [];
-  v.push( $piece_value_eg(pos) );
-  v.push( $psqt_eg(pos) );
-  v.push( $imbalance_total(pos));
-  v.push( $pawns_eg(pos) );
-  v.push( $pieces_eg(pos) );
-  v.push( $mobility_eg(pos) );
-  v.push( $threats_eg(pos) );
-  v.push( $passed_eg(pos));
-  v.push( $king_eg(pos) );
+  var v = {};
+  v.piece_value = $piece_value_eg(pos) ;
+  v.psqt =  $psqt_eg(pos) ;
+  v.imbalance = $imbalance_total(pos);
+  v.pawns = $pawns_eg(pos) ;
+  v.pieces = $pieces_eg(pos) ;
+  v.mobility = $mobility_eg(pos) ;
+  v.threats = $threats_eg(pos) ;
+  v.passed = $passed_eg(pos);
+  v.king = $king_eg(pos) ;
+  v.space = 0
+  v={ ...$additional_evaluation_list_one_side(pos) , ...v};
+  return v
+
   
-  return v;
 }
 
 
@@ -666,12 +648,6 @@ function $bishop_count(pos, square) {
 function $bishop_pair(pos, square) {
   if ($bishop_count(pos) < 2) return 0;
   if (square == null){
-    store_message1({"colour":(pos.i  ? "black" : "white"),
-      "peice":null,
-      "square":null,
-      "function":"$bishop_pair",
-      "score":1,
-      "pos":pos})
     return 1438;
   }
   return board(pos, square.x, square.y) == "B" ? 1 : 0;
@@ -761,6 +737,72 @@ function $mobility_bonus(pos, square, mg) {
 }
 
 
+function $attack_map(pos){
+  var result = new Array(8);
+  for (var i = 0; i < 8; i++) 
+    result[i] = new Array(8);
+  for (var x = 0; x < 8; x++)
+    for (var y = 0; y < 8; y++)
+    {
+      result[x][y] = $attack(pos,{x:x,y:y})
+    }
+  
+  return result
+}
+
+function $control_map(pos){
+  var attack = $attack_map(pos)
+  pos = colorflip(pos)
+  var opp = $attack_map(pos)
+
+  for (var x = 0; x < 8; x++)
+      for (var y = 0; y < 8; y++)
+        attack[x][y] = attack[x][y]-opp[x][7-y]
+  
+  return attack
+}
+
+function $apply_mask_to_map(map,mask_function){
+  var result = new Array(8)
+  for (var x = 0; x < 8; x++)
+  {
+    result[x] = new Array(8)
+    for (var y = 0; y < 8; y++)
+      if (!mask_function({x:x,y:y})) 
+        result[x][y] = 0
+      else
+        result[x][y] = map[x][y]
+  }
+  return result
+}
+
+function $queenside_m(pos){
+  return pos.x < 4
+}
+function $kingside_m(pos){
+  return pos.x > 3
+}
+function $middle_m(pos){
+  return ((pos.x>2) && (pos.x < 5))
+}
+function $attack_m(pos){
+  return pos.y < 4
+}
+function $defence_m(pos){
+  return pos.y >3 
+}
+function $centre_m(pos){
+  return $middle_m(pos) && (pos.y>2) && (pos.y <5)
+}
+function $sum_map(map,f){
+  var sum = 0
+  for (var x = 0; x < 8; x++)
+      for (var y = 0; y < 8; y++)
+          sum += f(map[x][y])
+  return sum
+}
+
+
 function $knight_attack(pos, square, s2) {
   if (square == null) return sum(pos, $knight_attack);
   var v = 0;
@@ -772,12 +814,6 @@ function $knight_attack(pos, square, s2) {
     && (s2 == null || s2.x == square.x + ix && s2.y == square.y + iy)
     && !$pinned(pos, {x:square.x + ix, y:square.y + iy})) v++;
   }
-  store_message1({"colour":(pos.i  ? "black" : "white"),
-    "peice":peice(pos,square.x,square.y),
-    "square":("abcdefgh"[square.x]+String(pos.i ? square.y+1: 8-square.y)),
-    "function":"$knight_attack",
-    "score":v,
-    "pos":pos})
   return v;
 }
 
